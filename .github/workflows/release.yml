@@ -74,11 +74,20 @@ jobs:
             label: windows-x64
           - os: ubuntu-latest
             label: linux-x64
-          # macOS 两种架构的包互不通用，各打各的。
-          # macos-13 是 Intel，macos-14 起是 Apple Silicon
-          - os: macos-13
+          # macOS 两种架构的包互不通用，各打各的：jpackage 连架构也不能交叉编译。
+          #
+          # 标签要盯着 actions/runner-images 的 README 走，它会退役。
+          # 第一版这里写的是 macos-13（Intel）和 macos-14（Apple Silicon），
+          # 结果 macos-13 已经从可用列表里撤了——**而现象不是报错，是那个 job
+          # 一直排队排到超时**，日志里一个字都没有，看不出是标签的问题。
+          # macos-14 当时也已经标了 deprecated，一并挪到 15。
+          #
+          # 刻意钉死版本号而不用 macos-latest：发布构建要可复现，
+          # 而 -latest 会在某个月悄悄换掉底下的系统版本。
+          # 代价是每隔一阵子得回来核对一次这两个标签还在不在。
+          - os: macos-15-intel
             label: macos-x64
-          - os: macos-14
+          - os: macos-15
             label: macos-arm64
     runs-on: ${{ matrix.os }}
 
