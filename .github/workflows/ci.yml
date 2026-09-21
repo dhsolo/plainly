@@ -1,0 +1,53 @@
+# 每次推送和 PR 跑一遍测试，三个平台各跑一次。
+#
+# 为什么要三个平台：这个项目的构建按操作系统挑 JavaFX 的平台包
+# （见 plainly-app/pom.xml 里那几个 profile），而挑错了**不在构建期报错**。
+# 只在一个平台上跑绿，等于没验过另外两个。
+#
+# 全部测试都不依赖外部数据库（CONTRIBUTING 立的规矩），所以这里不需要任何
+# 服务容器——关系库那部分跑在嵌入式 H2 上，其余是纯单元测试。
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # settings.xml 不进版本库（它可能带着各人机器上的 localRepository），
+      # 仓库里给的是模板。CONTRIBUTING 第一步就是这个 cp
+      - name: 生成 Maven 配置
+        shell: bash
+        run: cp settings.xml.example settings.xml
+
+      - name: 跑测试
+        shell: bash
+        run: mvn -s settings.xml -gs settings.xml -B test
+
+      # 失败时把 surefire 报告捞出来。只看日志里那句 "Tests run: N, Failures: 1"
+      # 是查不出为什么的，而 CI 跑完容器就没了
+      - name: 失败时上传测试报告
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-${{ matrix.os }}
+          path: '**/target/surefire-reports/**'
+          retention-days: 7

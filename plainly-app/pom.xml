@@ -14,8 +14,63 @@
   <description>JavaFX 界面与启动器。</description>
 
   <properties>
+    <!--
+      JavaFX 平台包的 classifier。默认 win，保持在 Windows 上不写任何参数也能构建。
+      在 Linux 上由下面的 profile 自动改成 linux；也可以 -Djavafx.platform=linux 手动指定。
+    -->
     <javafx.platform>win</javafx.platform>
   </properties>
+
+  <!--
+    按构建机器的操作系统与架构挑 JavaFX 的平台包。
+
+    为什么必须挑：javafx-controls 这几个带 classifier 的包里装的是**本地库**——
+    Windows 的是 dll，Linux 的是 so，macOS 的是 dylib。拿 win 的包在 Linux 上跑，
+    编译一切正常，要等到界面真正起来的那一刻才 UnsatisfiedLinkError。
+    这是个不会在构建期报错的错。
+
+    macOS 要分两个 classifier：Intel 机器是 mac，Apple Silicon 是 mac-aarch64。
+    这一条比另外两家更容易踩——两种 Mac 长得一模一样，而拿错了同样只在运行期才炸。
+    profile 的顺序不解决问题，所以 aarch64 那条用 arch 精确匹配，Intel 那条排在后面兜底。
+  -->
+  <profiles>
+    <profile>
+      <id>javafx-windows</id>
+      <activation>
+        <os><family>windows</family></os>
+      </activation>
+      <properties>
+        <javafx.platform>win</javafx.platform>
+      </properties>
+    </profile>
+    <profile>
+      <id>javafx-linux</id>
+      <activation>
+        <os><name>linux</name></os>
+      </activation>
+      <properties>
+        <javafx.platform>linux</javafx.platform>
+      </properties>
+    </profile>
+    <profile>
+      <id>javafx-mac-aarch64</id>
+      <activation>
+        <os><family>mac</family><arch>aarch64</arch></os>
+      </activation>
+      <properties>
+        <javafx.platform>mac-aarch64</javafx.platform>
+      </properties>
+    </profile>
+    <profile>
+      <id>javafx-mac-x86_64</id>
+      <activation>
+        <os><family>mac</family><arch>x86_64</arch></os>
+      </activation>
+      <properties>
+        <javafx.platform>mac</javafx.platform>
+      </properties>
+    </profile>
+  </profiles>
 
   <dependencies>
     <dependency>

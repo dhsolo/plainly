@@ -1,0 +1,42 @@
+# jpackage 运行时镜像里要带的 JDK 模块。
+#
+# 这份清单是 package.ps1（Windows）和 package.sh（Linux / macOS）共用的**唯一**来源。
+# 三个平台各抄一份的话，加了新依赖只改其中一份，另外两个平台打出来的包会缺模块——
+# 而那种缺失不在打包时报错，只在用户机器上以一种看不出原因的方式失败。
+# 这个项目已经吃过一次「同一个值写在两个地方」的亏（见 README「一处改版本号」）。
+#
+# JavaFX 是从 classpath 加载的（非模块化），所以不 jlink 裁模块路径；
+# 但运行时镜像里要带哪些 JDK 模块得自己说清楚——jpackage 靠 jdeps 静态分析，
+# 而下面标注的那几个都是**反射用到、静态分析看不见**的。
+#
+# 这份清单是用 jdeps 逐个 jar 核出来的，别凭印象增删：
+#   jdeps --multi-release 17 --ignore-missing-deps --print-module-deps \
+#         --class-path "<deps 里所有 jar>" <某个 jar>
+# 加新依赖（尤其是新数据库驱动）之后要重跑一遍。
+#
+# 空行和 # 开头的行会被忽略。
+
+java.base
+java.desktop
+java.logging
+java.management
+java.naming
+java.net.http          # 更新检查走它。少了它，检查更新永远失败
+java.prefs
+java.scripting
+java.security.jgss
+java.security.sasl     # 认证走 SASL 的那几家都要：MySQL 8 的 caching_sha2_password、
+                       # PostgreSQL 的 SCRAM-SHA-256、MongoDB 的 SCRAM。少了它，
+                       # 开发时跑 run.cmd 一切正常（那是完整 JDK），装完的版本一登录就
+                       # NoClassDefFoundError——而报错里不会提「模块」两个字
+java.sql
+java.sql.rowset        # 部分 JDBC 驱动会用到
+java.transaction.xa
+java.xml
+jdk.charsets           # 少了它，Charset.forName("GBK") 抛异常——导入导出选 GBK 就炸
+jdk.crypto.cryptoki
+jdk.crypto.ec          # 少了它，连 MySQL / PostgreSQL 的 TLS 握手会挑不出算法套件
+jdk.localedata         # 少了它，中文环境下的日期与数字格式退回英文
+jdk.net                # Oracle 驱动用 jdk.net.ExtendedSocketOptions 调 TCP keepalive
+jdk.unsupported        # sun.misc.Unsafe，若干库仍在用
+jdk.zipfs

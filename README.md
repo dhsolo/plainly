@@ -2,7 +2,12 @@
 
 ▎ A cross-database desktop client that never lets a value pass through a double — DECIMAL(38,10), Int64 and Decimal128 stay exact end to end. MySQL, PostgreSQL, Oracle, SQL Server, DM, SQLite, H2, Redis, MongoDB.
 
-跨数据库管理工具。JavaFX 桌面应用，面向 Windows。
+跨数据库管理工具。JavaFX 桌面应用，出 Windows、Linux、macOS 三个平台的安装包。
+
+> 三个平台的**打包**都跑得通，但验证程度不一样：Windows 上是一路真机用下来的；
+> Linux 与 macOS 目前只在 CI 上打得出包，装完之后的实际表现还没有在真机上验过。
+> 具体差异见「已知边界」第 14–16 条——尤其是保存的口令在非 Windows 平台上
+> 还没有真正加密。
 
 > 产品名 **Plainly** 是占位名，定了正式名字全局替换即可。
 
@@ -20,6 +25,16 @@ mvn -s settings.xml -gs settings.xml package
 REM 启动
 run.cmd
 ```
+
+Linux / macOS 上：
+
+```bash
+cp settings.xml.example settings.xml
+mvn -s settings.xml -gs settings.xml package
+java -cp "plainly-app/target/plainly.jar:plainly-app/target/deps/*" com.plainly.app.Launcher
+```
+
+JavaFX 的平台包按操作系统自动选，不用额外传参数（见「打包」一节）。
 
 启动后点「新建连接」→ 数据库选 **H2** → 库文件填 `demo/plainly-demo`（相对仓库根目录）
 → 测试连接 → 保存。左侧展开即可看到 `ORDERS`（5006 行）与 `CUSTOMERS`。
@@ -49,6 +64,7 @@ java -cp D:\mavenLib\com\h2database\h2\2.1.214\h2-2.1.214.jar tools\MakeDemoDb.j
 | 代码片段 | 可复用的写法，敲前缀就从补全里出来；出厂自带分页、找重复行这几条 |
 | SQL 编辑器 | 语法着色、作用域感知补全、执行 / 取消、执行计划、查询构建器 |
 | 标签页 | 保存、收藏、右键批量关闭；直接关掉工具时下次启动可恢复未保存的现场 |
+| 检查更新 | 出厂关闭、地址留空，此时不发任何网络请求；打开后只提示并帮你打开发布页，不下载、不执行 |
 
 **结构**
 
@@ -812,14 +828,38 @@ java -Dfile.encoding=UTF-8 -cp "plainly-app\target\plainly.jar;plainly-app\targe
 12. **暗色主题下，连接的标记色不跟着变。** 红=生产、绿=测试这套颜色是**语义**，
     不是装饰。跟着主题调色，等于把「这是生产库」这个信号也一起改了。
 
-13. **安装包没有代码签名。** MSI 已经能出（见「打包」），但没签名，
-   Windows SmartScreen 会拦一次，用户要点「更多信息 → 仍要运行」。
-   签名需要一张证书（Azure Trusted Signing 按月付费，或别家的 EV 证书），
-   拿不到证书就签不了，这一点绕不过去。
+13. **安装包没有代码签名，三个平台都没有。** 包本身已经能出（见「打包」）：
+   Windows 的 SmartScreen 会拦一次（「更多信息 → 仍要运行」），macOS 的
+   Gatekeeper 也会（「系统设置 → 隐私与安全性 → 仍要打开」），Linux 的
+   deb/rpm 没有 GPG 签名。签名需要证书或私钥（Windows 是 Azure Trusted Signing
+   按月付费或别家的 EV 证书，macOS 是 Apple Developer ID），拿不到就签不了，
+   这一条绕不过去。Release 里附了 `SHA256SUMS.txt`，但那证明的是
+   「文件没在传输中损坏」，**不是**「文件确实出自发布方」——两件事不能混。
+
+14. **Linux 与 macOS 上，保存的口令没有真正加密。** Windows 走 DPAPI，
+   另外两个平台目前只做了可逆编码，还没接 libsecret / 钥匙串。
+   应用启动时状态栏会如实写出当前用的是哪一种，界面上不假装安全。
+   不希望口令落盘就勾掉「保存密码」，那条连接的口令只在内存里。
+
+15. **macOS 一次只能打一种架构的包。** Intel 和 Apple Silicon 的包互不通用，
+   而 jpackage 只能给它跑在的那台机器打包。CI 里用 `macos-13`（Intel）和
+   `macos-14`（Apple Silicon）两个 runner 各打一份，文件名上带着架构区分开——
+   两份名字一样的话，用户下载了也分不出哪个是自己要的。
+
+16. **macOS 的包还没有在真机上装过。** 打包流程是照苹果的规则写的并且在 CI 上
+   能跑通，但「装完能不能正常启动」没有实机验证过。按这个项目的规矩，
+   没在真机验过的就如实标着未验证，不含糊过去。
 
 ---
 
 ## 打包
+
+三个平台各有一个脚本。**jpackage 不能交叉编译**——它打出来的包里装着本平台的
+运行时镜像和本平台的启动器二进制，所以 Windows 上只能出 exe/msi，Linux 上只能出
+deb/rpm，macOS 上只能出 dmg/pkg。一台机器出不齐三个平台，这一条绕不过去；
+要一次出齐就得有三台机器，`.github/workflows/release.yml` 就是替代那三台机器的。
+
+**Windows**
 
 ```bat
 REM 出一个可以直接双击运行的目录（不需要任何额外工具）
@@ -835,7 +875,31 @@ REM 装到当前用户，整个过程不弹 UAC
 powershell -ExecutionPolicy Bypass -File package.ps1 -Msi -PerUser
 ```
 
-产物在 `dist\`：`Plainly\` 是 app-image 目录（151 MB），`Plainly-0.1.0.msi` 是安装包（89 MB）。
+**Linux 与 macOS**
+
+```bash
+./package.sh                        # 只出 app-image
+./package.sh --installer            # Linux 默认出 deb，macOS 出 dmg
+./package.sh --installer --type rpm # RHEL / Fedora
+./package.sh --installer --type pkg # macOS 的另一种
+```
+
+产物都在 `dist/`。Linux 上打 rpm 需要 `rpmbuild`（`apt install rpm`）。
+
+**平台包不能拿错。** `javafx-controls` 这几个带 classifier 的依赖里装的是本地库——
+Windows 是 dll、Linux 是 so、macOS 是 dylib。拿错了**编译和打包全程不报错**，
+要等界面真正起来那一刻才 `UnsatisfiedLinkError`。`plainly-app/pom.xml` 里按操作系统
+和架构自动选（macOS 还要分 Intel 的 `mac` 和 Apple Silicon 的 `mac-aarch64`），
+`package.sh` 在调 jpackage 前还会再查一遍 `deps/` 里到底是哪个平台的包。
+
+**macOS 的版本号必须从 1 开头。** 苹果要求 `CFBundleShortVersionString` 的第一段
+是正整数，所以 `0.1.0` 在 Windows 和 Linux 上都合法，到 macOS 上 jpackage 直接拒绝。
+`package.sh` 会提前查出来并说明两条出路，而不是让 jpackage 抛一句
+「版本号无效」——那句话不会告诉你这是平台差异。
+
+**运行时模块清单只有一份**：`tools/jpackage-modules.txt`，三个脚本共用。
+原来它硬写在 `package.ps1` 里，加上另外两个平台之后就会变成三份，
+而三份不同步的后果和「两处版本号」一模一样：不报错，只是某个平台的包缺模块。
 
 **MSI 需要 WiX Toolset 3.x**——jpackage 在 Windows 上就是调它的 `candle.exe` /
 `light.exe` 生成安装包的。脚本按 PATH → `build\wix` 的顺序找，`-FetchWix`
@@ -848,8 +912,9 @@ powershell -ExecutionPolicy Bypass -File package.ps1 -Msi -PerUser
    连 MySQL / PostgreSQL 的 TLS 握手挑不出算法套件）、`jdk.charsets`（少了它，
    `Charset.forName("GBK")` 抛异常，导入导出选 GBK 就炸）、`jdk.localedata`
    （少了它，中文环境下日期数字格式退回英文）。三样漏掉都不会在打包时报错，
-   只会在用户机器上以看不出原因的方式失败。清单写在 `package.ps1` 里，
-   验证方式见 `tools/RuntimeCheck.java`——它拿打包后的模块集真去做这几件事。
+   只会在用户机器上以看不出原因的方式失败。清单在 `tools/jpackage-modules.txt`
+   （三个平台的打包脚本共用这一份），验证方式见 `tools/RuntimeCheck.java`——
+   它拿打包后的模块集真去做这几件事。
 
 2. **图标是生成的，不是仓库里另放一张。** 窗口图标由 `Icons.appIcons()` 在运行时画出来，
    安装包那张由 `tools/MakeAppIcon.java` 从同一处导出成 `.ico`。另放一张就意味着
@@ -931,12 +996,45 @@ UpgradeCode 是否相同、ProductCode 是否不同、版本是否真的变大�
 `CREATE TABLE IF NOT EXISTS` 和 `addColumnIfMissing`，绝不改列、不删列、不重建表。
 新版本会遇到任意老版本留下的库文件，而那份库里装着用户攒了很久的东西。
 
-### 没有自动更新
+### 检查更新：只提示，不下载，也不执行
 
-应用不会自己检查新版本，也不会自己下载。要做的话至少需要：一个放版本信息的地址、
-一份能校验的下载（否则更新通道本身就成了攻击面）、以及**代码签名证书**——
-没有签名的自动更新等于让用户在无人值守的情况下运行一个 SmartScreen 会拦的程序，
-那比手动下载更糟。所以现在的做法是：把 MSI 给用户，双击装上去。
+菜单「工具 → 检查更新…」里配一个发布地址（`owner/repo`，或者整条
+`https://github.com/owner/repo` 粘进去也认），应用就能查 GitHub 的
+`releases/latest`，比出有没有更新的一版。
+
+查到了只做两件事：在工具栏下面挂一条提示，以及在用户点「去下载」时打开发布页。
+**不下载安装包，也不运行任何东西。**
+
+这条线是照着原来那段「没有自动更新」的顾虑划的——当时列的三个前提里，
+前两个（一个放版本信息的地址、一份能校验的下载）现在有了，
+第三个**代码签名证书**仍然没有。而没有签名时，替用户在无人值守的情况下跑起一个
+SmartScreen / Gatekeeper 会拦的安装程序，比让他自己去下载更糟。所以停在提示。
+
+三件事按这个项目的惯例明说：
+
+- **出厂是关的，地址留空，此时一个网络请求都不发。** 不是发出去再把结果丢掉，
+  是根本不走到网络那一步——README 上面「安全」一节承诺过这个工具唯一的网络行为
+  是连你自己配的库，多一个功能不该让那句话悄悄作废；
+- 打开之后，每次启动会向 GitHub 请求一次版本信息，对方因此能看到这台机器的 IP。
+  设置页上就是这么写的；
+- 查不成不弹框，只往状态栏写一句。但**不会完全不说**——这个项目吃过那个亏
+  （`listTriggers` 把异常吞掉返回空表，于是「读不到」和「本来就没有」长得一模一样）。
+  地址填错或者连不上 GitHub 的话，全程静默会让用户一直以为「一直没有新版本」。
+
+#### 版本比较只比前三段，这是照抄 Windows 的行为
+
+`0.1.0.4` 和 `0.1.0.5` 在 Windows 眼里是**同一个版本**（MSI 只比前三段）。
+所以更新检查也只比前三段——按四段比的话会造出这样一条路：提示「有新版本」→
+用户下载 → 双击 → 进度条 → 「完成」→ 打开还是旧的，全程不报错。
+
+这和上面「一处改版本号」记的是同一个陷阱，更新检查是它的第二个入口。
+`VersionTest.ignoresFourthSegmentLikeWindowsDoes` 和
+`UpdateCheckerTest.fourthSegmentIsNotAnUpdate` 两条用例守着它，
+并且都做过证伪（把比较改成四段，它们确实变红）。
+
+从源码运行时 jar 没有 manifest，取不到版本号，这时候如实说「没法比较」，
+不拿 `0.0.0` 去凑——凑的话，开发版每次启动都会被告知有新版本，
+而那台机器上根本没有安装包可装。
 
 ---
 
@@ -995,9 +1093,19 @@ MongoDB 把 `"0123"` 存成 `123`，每一条都是探针跑出来的，
 
 **这个工具会接触你的数据库凭据。** 相关设计如下，看完再决定要不要用：
 
-- 密码存在 `%APPDATA%\Plainly\plainly.db` 里，用 **Windows DPAPI** 加密，
-  绑定当前用户与当前机器。换机器、换用户都解不开——这是有意的，
-  代价是换机器要重填密码；
+- 密码存在本机配置库里（Windows 是 `%APPDATA%\Plainly\plainly.db`，
+  Linux / macOS 是 `~/.plainly/plainly.db`）。**保护程度按平台不同，这一点必须说清楚：**
+
+  | 平台 | 保存的口令怎么存 |
+  |---|---|
+  | Windows | **DPAPI** 加密，绑定当前用户与当前机器。换机器、换用户都解不开 |
+  | Linux / macOS | **只做了可逆编码，等于没加密**。还没接 libsecret / 钥匙串 |
+
+  非 Windows 上那一栏不是疏漏，是还没做。应用启动时状态栏会如实写出当前的存储方式
+  （「未加密（当前平台无可用的系统凭据保护）」），不希望口令落盘就勾掉「保存密码」。
+
+  之所以不在那儿随便塞个 AES 顶上：密钥必须跟着程序走，等于把锁和钥匙放在一起，
+  那是「看起来加密了」，比明说未加密更危险；
 - 「导出连接」功能生成的是**便携格式**，用 PBKDF2WithHmacSHA256 + AES/GCM，
   口令由你在导出时给。这份文件离开了 DPAPI 的保护，请当作敏感文件对待；
 - 勾掉「保存密码」的连接只在内存里持有口令，不落盘；

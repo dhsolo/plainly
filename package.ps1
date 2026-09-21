@@ -135,33 +135,17 @@ New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
 # ---------------------------------------------------------------- 3. app-image
 
-# JavaFX 是从 classpath 加载的（非模块化），所以不 jlink 裁模块路径；
-# 但运行时镜像里要带哪些 JDK 模块得自己说清楚——jpackage 靠 jdeps 静态分析，
-# 而下面这几个都是**反射用到、静态分析看不见**的，漏掉不会在打包时报错，
-# 只会在用户机器上以一种看不出原因的方式失败：
-#   jdk.crypto.ec        少了它，连 MySQL / PostgreSQL 的 TLS 握手会挑不出算法套件
-#   jdk.charsets         少了它，Charset.forName("GBK") 抛异常——导入导出选 GBK 就炸
-#   jdk.localedata       少了它，中文环境下的日期与数字格式退回英文
-#   java.sql.rowset      部分 JDBC 驱动会用到
-#   jdk.unsupported      sun.misc.Unsafe，若干库仍在用
-#   java.security.sasl   认证走 SASL 的那几家都要：MySQL 8 的 caching_sha2_password、
-#                        PostgreSQL 的 SCRAM-SHA-256、MongoDB 的 SCRAM。少了它，
-#                        开发时跑 run.cmd 一切正常（那是完整 JDK），装完的版本一登录就
-#                        NoClassDefFoundError——而报错里不会提「模块」两个字
-#   jdk.net              Oracle 驱动用 jdk.net.ExtendedSocketOptions 调 TCP keepalive
+# 运行时镜像里要带哪些 JDK 模块，读 tools\jpackage-modules.txt。
 #
-# 这份清单是用 jdeps 逐个 jar 核出来的，别凭印象增删：
-#   jdeps --multi-release 17 --ignore-missing-deps --print-module-deps ^
-#         --class-path "<deps 里所有 jar>" <某个 jar>
-# 加新依赖（尤其是新数据库驱动）之后要重跑一遍，见 README「怎么发下一个版本」。
-$modules = @(
-    'java.base', 'java.desktop', 'java.logging', 'java.management', 'java.naming',
-    'java.net.http', 'java.prefs', 'java.scripting', 'java.security.jgss',
-    'java.security.sasl',
-    'java.sql', 'java.sql.rowset', 'java.transaction.xa', 'java.xml',
-    'jdk.charsets', 'jdk.crypto.cryptoki', 'jdk.crypto.ec',
-    'jdk.localedata', 'jdk.net', 'jdk.unsupported', 'jdk.zipfs'
-) -join ','
+# 那份文件是三个平台的打包脚本**共用的唯一来源**，每个模块为什么在清单里
+# 也写在那儿。原来这份清单硬写在本脚本里，加上 Linux 与 macOS 之后就成了三份，
+# 而三份不同步的后果和「两处版本号」一模一样：不报错，只是某个平台的包缺模块。
+$modulesFile = Join-Path $root 'tools\jpackage-modules.txt'
+if (-not (Test-Path $modulesFile)) { Fail "没找到模块清单 $modulesFile" }
+$modules = (Get-Content $modulesFile -Encoding UTF8 |
+    ForEach-Object { ($_ -replace '#.*$', '').Trim() } |
+    Where-Object { $_ -ne '' }) -join ','
+Write-Output "模块清单：$modulesFile（$(($modules -split ',').Count) 个）"
 
 $common = @(
     '--name', $appName,

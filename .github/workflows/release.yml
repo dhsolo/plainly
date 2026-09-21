@@ -1,0 +1,225 @@
+# 打三个平台的安装包，挂到一个 GitHub Release 上。
+#
+# 推一个 v 开头的 tag 就触发：
+#   git tag v0.2.0 && git push origin v0.2.0
+# 也可以在 Actions 页面手动跑（workflow_dispatch），用来做发布演练。
+#
+# 为什么必须用三个 runner：**jpackage 不能交叉编译**。它打出来的包里装着
+# 本平台的运行时镜像和本平台的启动器二进制，所以 Windows 的 msi 只能在
+# Windows 上打，deb/rpm 只能在 Linux 上打，dmg 只能在 macOS 上打。
+# 本地想一次出齐是做不到的，这个 workflow 就是替代那三台机器。
+#
+# tag 和 pom.xml 的版本号必须对得上，下面第一个 job 会核对。
+# 对不上的后果不是报错而是发布出一个自称别的版本的包——
+# 而应用里的「检查更新」正是按 tag 去比版本的，一旦对不上，
+# 用户会被反复提示升级到一个他已经装了的版本。
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '演练用的版本号（不创建 Release）'
+        required: false
+
+permissions:
+  contents: write   # 创建 Release、上传产物要写权限
+
+jobs:
+  # ------------------------------------------------------------------ 校验
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 核对 tag 与 pom.xml 的版本号
+        id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          pom=$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' pom.xml | head -n 1)
+          pom=${pom%-SNAPSHOT}
+          echo "pom.xml 版本：$pom"
+
+          if [ "${{ github.event_name }}" = 'push' ]; then
+            tag="${GITHUB_REF#refs/tags/}"
+            echo "tag：$tag"
+            if [ "${tag#v}" != "$pom" ]; then
+              echo "::error::tag $tag 和 pom.xml 的 $pom 对不上。"
+              echo "::error::发出去的包会自称 $pom，而「检查更新」按 tag 比，"
+              echo "::error::结果是用户被反复提示升级到一个他已经装了的版本。"
+              exit 1
+            fi
+          fi
+
+          if ! echo "$pom" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::版本号 $pom 不是三段纯数字，三个平台的打包都会拒绝。"
+            exit 1
+          fi
+          echo "version=$pom" >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------------------------------------ 打包
+  build:
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: windows-x64
+          - os: ubuntu-latest
+            label: linux-x64
+          # macOS 两种架构的包互不通用，各打各的。
+          # macos-13 是 Intel，macos-14 起是 Apple Silicon
+          - os: macos-13
+            label: macos-x64
+          - os: macos-14
+            label: macos-arm64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: 生成 Maven 配置
+        shell: bash
+        run: cp settings.xml.example settings.xml
+
+      # rpm 不在 ubuntu runner 的默认镜像里。deb 需要的 dpkg / fakeroot 是有的。
+      # 缺了 rpmbuild 时 jpackage 的报错只说命令找不到，不会说该装哪个包
+      - name: 装 rpm 工具链（Linux）
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y rpm fakeroot
+
+      # jpackage 在 Windows 上靠 WiX 的 candle.exe / light.exe 出 MSI。
+      # -FetchWix 会取一份免安装的解到 build\wix，不动系统
+      - name: 打包（Windows · MSI）
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./package.ps1 -Msi -FetchWix
+
+      - name: 打包（Linux · deb 与 rpm）
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          chmod +x package.sh
+          ./package.sh --installer --type deb
+          # 第二遍复用上一遍的 mvn 产物：同一份 jar 打两种包，
+          # 重新构建一次既慢又给了两份产物不一致的机会
+          ./package.sh --installer --type rpm --skip-build
+
+      # macOS 这一步在 pom 版本还是 0.x 时会失败，且这是**故意让它失败**的：
+      # 苹果要求 CFBundleShortVersionString 的主版本 >= 1，package.sh 会把
+      # 这件事连同两条出路一起说清楚，而不是让 jpackage 抛一句看不懂的话。
+      - name: 打包（macOS · dmg）
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          chmod +x package.sh
+          ./package.sh --installer --type dmg
+
+      # 产物改名带上平台，否则四个 job 传上去的文件会重名。
+      # 尤其是两种 macOS：文件名一模一样，用户下载了也分不出是哪一种
+      - name: 给产物名字带上平台
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p upload
+          version='${{ needs.check.outputs.version }}'
+          shopt -s nullglob
+          for f in dist/*.msi dist/*.deb dist/*.rpm dist/*.dmg dist/*.pkg; do
+            ext="${f##*.}"
+            cp "$f" "upload/Plainly-${version}-${{ matrix.label }}.${ext}"
+          done
+          ls -lh upload
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.label }}
+          path: upload/*
+          retention-days: 14
+          if-no-files-found: error
+
+  # ------------------------------------------------------------------ 发布
+  release:
+    needs: [check, build]
+    # 演练（workflow_dispatch）只打包不发布：手动跑一遍确认三个平台都打得出来，
+    # 不该顺手在仓库上留下一个 Release
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 取回全部产物
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: installer-*
+          merge-multiple: true
+
+      # 校验和让下载的人能自己核对。这不能替代代码签名——它证明的是
+      # 「文件没在传输中损坏」，不是「文件确实出自发布方」。签名要证书，
+      # 拿不到证书就绕不过去，README 里写明了
+      - name: 生成 SHA-256 清单
+        run: |
+          cd artifacts
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      # 说明先落成文件再发布。
+      #
+      # 原来想把它用 heredoc 直接喂给 gh，但 YAML 里这段是缩进的，
+      # heredoc 的结束标记跟着缩进之后就不再是结束标记——脚本会一直读到文件尾。
+      # 这种错在本地根本试不出来，只会在真发布的那一次炸。
+      - name: 写发布说明
+        run: |
+          cat > notes.md <<'NOTES'
+          ## 安装
+
+          | 平台 | 文件 |
+          |---|---|
+          | Windows | `*-windows-x64.msi` |
+          | Linux (Debian / Ubuntu) | `*-linux-x64.deb` |
+          | Linux (RHEL / Fedora) | `*-linux-x64.rpm` |
+          | macOS (Intel) | `*-macos-x64.dmg` |
+          | macOS (Apple Silicon) | `*-macos-arm64.dmg` |
+
+          下载后可用 `SHA256SUMS.txt` 核对完整性。
+
+          ## 这些包没有代码签名
+
+          Windows 的 SmartScreen 会拦一次（「更多信息 → 仍要运行」），
+          macOS 的 Gatekeeper 也会（「系统设置 → 隐私与安全性 → 仍要打开」）。
+          签名需要证书，拿不到就签不了，这一点无法靠代码绕过。
+
+          ## 口令的保护程度按平台不同
+
+          Windows 上用 DPAPI 加密，绑定当前用户与当前机器。
+          Linux 与 macOS 上目前**没有**接系统密钥环，保存的口令只做了可逆编码——
+          应用启动时状态栏会如实写明当前的存储方式。
+          不希望口令落盘就勾掉「保存密码」。
+          NOTES
+          cat notes.md
+
+      # 用 gh（runner 自带）而不是第三方 action：发布这一步手里握着
+      # 写仓库的权限，能少引一个外部依赖就少引一个
+      - name: 建 Release 并上传
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF#refs/tags/}"
+          gh release create "$tag" --title "$tag" --notes-file notes.md
+          gh release upload "$tag" artifacts/* --clobber

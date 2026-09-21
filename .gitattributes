@@ -1,0 +1,30 @@
+# 行尾。
+#
+# 这个仓库主要在 Windows 上开发，Git 默认会把签出的文件转成 CRLF。
+# 对多数文件无所谓，但有几类**必须是 LF**，否则在 Linux / macOS 上直接坏掉，
+# 而且报错完全看不出是行尾的问题：
+#
+#   · shell 脚本：CRLF 会让 shebang 变成 "/usr/bin/env bash\r"，
+#     系统说 "bad interpreter: no such file or directory"——
+#     而那个文件明明就在那儿；
+#   · GitHub Actions 的 workflow：里面内嵌的 bash 会带上 \r，
+#     heredoc 的结束标记于是永远匹配不上。
+#
+# 默认按 Git 的自动判断处理，下面几条显式锁死。
+* text=auto
+
+*.sh   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Windows 那一侧反过来：PowerShell 和 cmd 脚本保持 CRLF
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制，别碰
+*.png  binary
+*.ico  binary
+*.icns binary
+*.mv.db binary
+*.msi  binary

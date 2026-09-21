@@ -15,7 +15,8 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 
 /**
- * 把窗口图标导成一个 .ico，给安装包和 exe 用。
+ * 把窗口图标导出成安装包要用的格式：{@code .ico}（Windows）、
+ * {@code .png}（Linux）、{@code .icns}（macOS）。按目标文件的扩展名分派。
  *
  * <h2>为什么要生成，而不是找一张图放进仓库</h2>
  * 应用的图标是 {@link Icons#appIcons()} 在运行时画出来的（SVG 路径 → 快照）。
@@ -68,8 +69,125 @@ public class MakeAppIcon extends Application {
         System.exit(0);
     }
 
+    /**
+     * 按目标扩展名分派：三个平台的安装包要三种格式。
+     *
+     * <p>Windows 要 {@code .ico}，Linux 要 {@code .png}，macOS 要 {@code .icns}——
+     * jpackage 在每个平台上只认自己那一种，给错了它直接拒绝。
+     *
+     * <p>三种都从同一处画出来，理由和类注释开头说的一样：一旦分成三份素材，
+     * 改了代码里的图标之后，哪几份跟着变了、哪几份没有，没有任何东西会告诉你。
+     */
     @Override
     public void start(Stage stage) throws Exception {
+        String lower = target.toLowerCase(java.util.Locale.ROOT);
+        if (lower.endsWith(".png")) {
+            writePngFile();
+            Platform.exit();
+            return;
+        }
+        if (lower.endsWith(".icns")) {
+            writeIcnsFile();
+            Platform.exit();
+            return;
+        }
+        writeIcoFile();
+        Platform.exit();
+    }
+
+    /**
+     * Linux：一张 PNG 就够。
+     *
+     * <p>jpackage 的 {@code --icon} 在 Linux 上只收一张，桌面环境自己缩放。
+     * 取 256——比它大对着 48 像素的任务栏没有意义，比它小在高分屏上会糊。
+     */
+    private void writePngFile() throws Exception {
+        BufferedImage buffer = render(256);
+        Path out = prepare();
+        try (OutputStream stream = Files.newOutputStream(out)) {
+            stream.write(toPng(buffer));
+        }
+        System.out.println("已生成 " + out.toAbsolutePath() + "  "
+                + Files.size(out) + " 字节（256px PNG）");
+    }
+
+    /**
+     * macOS：.icns。
+     *
+     * <h2>格式</h2>
+     * magic {@code icns} + 4 字节总长度（含这 8 字节），后面一串条目，
+     * 每条是 4 字节类型码 + 4 字节条目长度（<b>含这 8 字节</b>）+ 数据。
+     * 长度字段把自己也算进去，这一点忘了的话 Finder 会认为文件截断，
+     * 图标直接不显示——而不会报错。
+     *
+     * <h2>为什么要给到 1024</h2>
+     * macOS 的「访达」在图标视图里能把图标拉到很大，Retina 屏上 {@code ic10}
+     * （1024，即 512@2x）是真会被用到的一档。缺了它系统拿 512 去拉，肉眼看得出来。
+     * 图标本身是矢量画的，多画几档不费什么。
+     */
+    private void writeIcnsFile() throws Exception {
+        // 类型码 → 边长。icp4/5/6 是小尺寸的 PNG 档，ic07 往上是大尺寸
+        String[] types = {"icp4", "icp5", "icp6", "ic07", "ic08", "ic09", "ic10"};
+        int[] px = {16, 32, 64, 128, 256, 512, 1024};
+
+        List<byte[]> entries = new ArrayList<>();
+        int total = 8;
+        for (int i = 0; i < types.length; i++) {
+            byte[] png = toPng(render(px[i]));
+            ByteArrayOutputStream entry = new ByteArrayOutputStream();
+            entry.write(types[i].getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+            writeBigEndianInt(entry, png.length + 8);
+            entry.write(png);
+            byte[] bytes = entry.toByteArray();
+            entries.add(bytes);
+            total += bytes.length;
+        }
+
+        Path out = prepare();
+        try (OutputStream stream = Files.newOutputStream(out)) {
+            stream.write("icns".getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+            ByteArrayOutputStream head = new ByteArrayOutputStream();
+            writeBigEndianInt(head, total);
+            stream.write(head.toByteArray());
+            for (byte[] entry : entries) {
+                stream.write(entry);
+            }
+        }
+        System.out.println("已生成 " + out.toAbsolutePath() + "  "
+                + Files.size(out) + " 字节");
+        System.out.println("  含尺寸 " + java.util.Arrays.toString(px));
+    }
+
+    private static void writeBigEndianInt(OutputStream out, int value) throws IOException {
+        out.write((value >>> 24) & 0xFF);
+        out.write((value >>> 16) & 0xFF);
+        out.write((value >>> 8) & 0xFF);
+        out.write(value & 0xFF);
+    }
+
+    private Path prepare() throws IOException {
+        Path out = Path.of(target);
+        if (out.getParent() != null) {
+            Files.createDirectories(out.getParent());
+        }
+        return out;
+    }
+
+    /**
+     * 任意尺寸画一张。
+     *
+     * <p>{@link Icons#appIcons()} 那张缓存表最大只到 256，而 .icns 要到 1024，
+     * 所以这里直接对 {@code appMark(px)} 取快照——图标本来就是矢量画的，
+     * 放到哪一档都是清晰的。填充设成透明，否则四角会是黑的。
+     */
+    private static BufferedImage render(int px) {
+        javafx.scene.SnapshotParameters params = new javafx.scene.SnapshotParameters();
+        params.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        Image shot = Icons.appMark(px).snapshot(params, null);
+        return toBuffered(shot, px);
+    }
+
+    private void writeIcoFile() throws Exception {
         List<byte[]> payloads = new ArrayList<>();
         List<Integer> sizes = new ArrayList<>();
 

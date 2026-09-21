@@ -34,6 +34,11 @@ mvn -s settings.xml -gs settings.xml test
 **新增的测试也必须保持这一点**：需要真实实例才能跑的东西不是单元测试，
 它属于下面说的探针。
 
+推上去之后 `.github/workflows/ci.yml` 会在 **Windows、Linux、macOS 三个平台**
+各跑一遍。三个都跑不是多余的：构建按操作系统挑 JavaFX 的平台包
+（见 `plainly-app/pom.xml` 里那几个 profile），而挑错了不在构建期报错——
+只在一个平台上跑绿，等于没验过另外两个。
+
 ## 探针：这个项目的一条硬规矩
 
 `tools/` 下有几十个 `*Probe.java`。它们不是测试，是**拿真东西验证假设**的一次性程序。
