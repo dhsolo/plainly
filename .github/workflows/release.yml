@@ -96,11 +96,13 @@ jobs:
         shell: bash
         run: cp settings.xml.example settings.xml
 
-      # rpm 不在 ubuntu runner 的默认镜像里。deb 需要的 dpkg / fakeroot 是有的。
-      # 缺了 rpmbuild 时 jpackage 的报错只说命令找不到，不会说该装哪个包
-      - name: 装 rpm 工具链（Linux）
+      # rpm 不在 ubuntu runner 的默认镜像里（deb 要的 dpkg / fakeroot 是有的），
+      # 缺了 rpmbuild 时 jpackage 只说命令找不到，不会说该装哪个包；xvfb 也不在。
+      # xvfb 是给画图标那一步用的——MakeAppIcon 是个 JavaFX 程序，
+      # 在无头机器上会抛「Unable to open DISPLAY」，而那句话不会告诉你缺的是什么
+      - name: 装 rpm 与 xvfb（Linux）
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y rpm fakeroot
+        run: sudo apt-get update && sudo apt-get install -y rpm fakeroot xvfb
 
       # jpackage 在 Windows 上靠 WiX 的 candle.exe / light.exe 出 MSI。
       # -FetchWix 会取一份免安装的解到 build\wix，不动系统

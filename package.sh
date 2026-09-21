@@ -91,10 +91,10 @@ pom_version() {
 
 if [ -n "$forced_version" ]; then
     version="$forced_version"
-    echo "版本 $version（命令行指定，未采用 pom.xml 里的）"
+    echo "版本 ${version}（命令行指定，未采用 pom.xml 里的）"
 else
     version="$(pom_version)"
-    echo "版本 $version（取自 pom.xml）"
+    echo "版本 ${version}（取自 pom.xml）"
 fi
 
 case "$version" in
@@ -117,7 +117,7 @@ if [ "$platform" = mac ]; then
     major="${version%%.*}"
     if [ "$major" -lt 1 ]; then
         fail "版本号 $version 在 macOS 上打不出安装包：主版本必须 >= 1（苹果对
-CFBundleShortVersionString 的要求），而这里是 $major。
+CFBundleShortVersionString 的要求），而这里是 ${major}。
 
 两条路：
   1. 把 pom.xml 的版本升到 1.x，三个平台统一；
@@ -136,7 +136,7 @@ else
 fi
 
 jar="$root/plainly-app/target/$main_jar"
-[ -f "$jar" ] || fail "没找到 $jar，先跑一次构建（去掉 --skip-build）"
+[ -f "$jar" ] || fail "没找到 ${jar}，先跑一次构建（去掉 --skip-build）"
 
 # 平台包拿错了不会在构建期报错，只在界面起来那一刻 UnsatisfiedLinkError。
 # 这里直接查产物：deps 里必须有本平台的 JavaFX 包
@@ -151,7 +151,7 @@ case "$platform" in
 esac
 # shellcheck disable=SC2086
 if ! ls $deps_dir/$expect_jfx >/dev/null 2>&1; then
-    fail "deps 里没有本平台的 JavaFX（找 $expect_jfx）。
+    fail "deps 里没有本平台的 JavaFX（找 ${expect_jfx}）。
 构建时 javafx.platform 选错了——pom 里按操作系统自动选，被覆盖过的话加上：
   mvn -Djavafx.platform=<win|linux|mac|mac-aarch64> package
 拿错平台的包，编译和打包全程不报错，装完一启动就 UnsatisfiedLinkError。"
@@ -173,14 +173,41 @@ if [ "$platform" = linux ]; then
 else
     icon_file="$build_dir/plainly.icns"
 fi
-java -Dfile.encoding=UTF-8 -cp "$jar:$deps_dir/*" \
-     "$root/tools/MakeAppIcon.java" "$icon_file"
+# 画图标要有图形环境。
+#
+# MakeAppIcon 是个 JavaFX Application——它得把矢量图标真画出来再快照，
+# 而 JavaFX 在 Linux 上要连 X11。CI 的 runner 是无头的，于是这一步会抛
+# "UnsupportedOperationException: Unable to open DISPLAY"，
+# 报错里不会提「你缺一个显示服务」，只说打不开 DISPLAY。
+#
+# 用 xvfb-run 给它一个虚拟显示。-a 让它自己挑一个没被占用的显示号，
+# 否则并发跑两次（deb 和 rpm 各跑一遍脚本）会撞在同一个 :99 上。
+#
+# macOS 和有桌面的 Linux 上不需要，直接跑。
+icon_runner=()
+if [ "$platform" = linux ] && [ -z "${DISPLAY:-}" ]; then
+    if command -v xvfb-run >/dev/null 2>&1; then
+        icon_runner=(xvfb-run -a)
+    else
+        fail "这台机器没有图形环境（DISPLAY 为空），也没有 xvfb-run。
+画应用图标要用到 JavaFX，它在 Linux 上必须连 X11。装一个：
+  sudo apt-get install -y xvfb     # Debian / Ubuntu
+  sudo dnf install -y xorg-x11-server-Xvfb   # Fedora / RHEL"
+    fi
+fi
+
+# ${arr[@]+"${arr[@]}"} 而不是 "${arr[@]}"：macOS 自带的是 bash 3.2，
+# 在 set -u 下展开一个空数组会当成未绑定变量直接退出。
+# 这一行在三个平台上都要跑得过，所以用这个兼容写法
+${icon_runner[@]+"${icon_runner[@]}"} \
+    java -Dfile.encoding=UTF-8 -cp "$jar:$deps_dir/*" \
+         "$root/tools/MakeAppIcon.java" "$icon_file"
 [ -f "$icon_file" ] || fail '图标生成失败'
 
 modules_file="$root/tools/jpackage-modules.txt"
 [ -f "$modules_file" ] || fail "没找到模块清单 $modules_file"
 modules=$(sed 's/#.*$//' "$modules_file" | tr -d ' \t' | grep -v '^$' | paste -sd, -)
-echo "  模块清单：$modules_file（$(echo "$modules" | tr ',' '\n' | wc -l | tr -d ' ') 个）"
+echo "  模块清单：${modules_file}（$(echo "$modules" | tr ',' '\n' | wc -l | tr -d ' ') 个）"
 
 # ---------------------------------------------------------------- 4. app-image
 
@@ -219,7 +246,7 @@ fi
 
 # ---------------------------------------------------------------- 5. 安装包
 
-echo "[4/4] jpackage $pkg_type…"
+echo "[4/4] jpackage ${pkg_type}…"
 
 extra=()
 case "$pkg_type" in
