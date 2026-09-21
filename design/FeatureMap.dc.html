@@ -1,0 +1,178 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#f5f5f3;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}
+a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.card{display:flex;flex-direction:column;background:#fff;border:1px solid #e0e0da;border-radius:6px;overflow:hidden}
+.card-head{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid #f0f0ec;background:#fafaf8}
+.card-title{font-size:13px;font-weight:600}
+.card-note{font-size:10.5px;color:#a8a8a1;margin-left:auto}
+.item{display:flex;align-items:flex-start;gap:9px;padding:7px 14px;border-bottom:1px solid #f6f6f2}
+.item:last-child{border-bottom:none}
+.item-name{font-size:12px;line-height:1.45}
+.item-why{font-size:10.5px;color:#8a8a84;line-height:1.5;margin-top:1px}
+.chip{font-size:9.5px;padding:1px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:2px;letter-spacing:.02em}
+.done{color:#3a6b3a;background:#eef5ee;border:1px solid #d4e4d4}
+.proto{color:#0f6f70;background:#e9f3f3;border:1px solid #c4dedd}
+.plan{color:#6b6b66;background:#f2f2ee;border:1px solid #e2e2dc}
+.skip{color:#a8a8a1;background:#f7f7f4;border:1px solid #ececE6}
+.core{font-size:9.5px;color:#8a5a00;background:#fdf6e6;border:1px solid #ecdcb4;border-radius:3px;padding:1px 6px}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:1400px;height:1180px;background:#f5f5f3;padding:32px 34px">
+
+  <div style="display:flex;align-items:flex-end;gap:16px;margin-bottom:6px">
+    <span style="font-size:24px;font-weight:600;letter-spacing:-.01em">功能全景</span>
+    <span style="font-size:13px;color:#6b6b66;padding-bottom:3px">对照 Navicat 梳理的八个功能域，及各自的落地节奏</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px">
+    <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#5f5f5a"><span class="chip done">已实现</span>v1 代码已完成并有测试覆盖</span>
+    <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#5f5f5a"><span class="chip proto">本次入原型</span>已画界面，待实现</span>
+    <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#5f5f5a"><span class="chip plan">规划中</span>认可但未排期</span>
+    <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#5f5f5a"><span class="chip skip">不做</span>附理由</span>
+    <div style="flex-grow:1"></div>
+    <span class="core">标橙的是 Navicat 真正的付费理由</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:16px;flex-grow:1">
+
+    <!-- 1 连接与会话 -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><ellipse cx="8" cy="3.8" rx="5" ry="2"></ellipse><path d="M3 3.8v8.4c0 1.1 2.2 2 5 2s5-.9 5-2V3.8"></path><path d="M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"></path></svg>
+        <span class="card-title">连接与会话</span>
+        <span class="card-note">01</span>
+      </div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">连接管理 · 测试连接 · 只读模式</span></span></div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">口令经 Windows DPAPI 加密</span><div class="item-why">绑定当前用户账户，配置库被拷走也解不开</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">SSH 隧道 · SSL</span><div class="item-why">跳板机后面的库，日常必用</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">连接颜色标记</span><div class="item-why">生产库标红。防误操作，成本极低收益极高</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">MongoDB · Redis</span><div class="item-why">非关系型，数据模型与网格差异大，需独立视图</div></span></div>
+      <div class="item"><span class="chip skip">不做</span><span><span class="item-name">云同步账号体系</span><div class="item-why">要自建服务与订阅，与「替代收费软件」的初衷相悖</div></span></div>
+    </div>
+
+    <!-- 2 对象管理 -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>
+        <span class="card-title">对象管理</span>
+        <span class="card-note">02</span>
+      </div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">对象树 · 表与视图浏览</span></span></div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">表结构设计器</span><div class="item-why">增删改字段、改名、换主键，预览 ALTER 并事务执行</div></span></div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">DDL 反向生成</span></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">索引 · 外键编辑</span><div class="item-why">设计器里已留了页签位置</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">视图 · 函数 · 触发器编辑</span></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">用户与权限管理</span><div class="item-why">DBA 场景，开发日常用不到</div></span></div>
+    </div>
+
+    <!-- 3 数据浏览与编辑 -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><rect x="2" y="3" width="12" height="10" rx="1"></rect><path d="M2 6.4h12M2 9.7h12M6 6.4V13"></path></svg>
+        <span class="card-title">数据浏览与编辑</span>
+        <span class="card-note">03</span>
+      </div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">网格视图 · 分页 · 行内编辑</span><div class="item-why">值按原文写回，全程不经浮点转换</div></span></div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">单元格原始值面板</span><div class="item-why">显示读取路径，精度在界面上可验证</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">表单视图</span><div class="item-why">字段多的表横向拉不完；长文本与 BLOB 也只有表单视图放得下</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">筛选与排序构建器</span><div class="item-why">条件下推数据库执行，不是页内过滤</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">查找替换 · 批量置值</span></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">数据生成器</span><div class="item-why">造测试数据，低频但省事</div></span></div>
+    </div>
+
+    <!-- 4 SQL 与查询 -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><path d="M4 2.2h5l3 3v8.6H4z"></path><path d="M6 8.4h4M6 10.8h4"></path></svg>
+        <span class="card-title">SQL 与查询</span>
+        <span class="card-note">04</span>
+      </div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">编辑器 · 语法着色 · 别名感知补全</span><div class="item-why">c. 能解析出 customers 的字段</div></span></div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">执行 · 取消 · 行数上限</span></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">可视化查询构建器</span><div class="item-why">拖表连线出 SQL。不写 SQL 的人也能查数</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">查询历史与收藏</span><div class="item-why">本机库已经建好表，只差界面</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">执行计划可视化</span><div class="item-why">各家 EXPLAIN 输出格式完全不同，一家一套解析</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">子查询作用域感知补全</span><div class="item-why">需要真正的语法树，正则做不到</div></span></div>
+    </div>
+
+    <!-- 5 数据流转 -->
+    <div class="card" style="border-color:#ecdcb4;box-shadow:0 0 0 1px #f4e7cd">
+      <div class="card-head" style="background:#fefbf4;border-bottom-color:#f2e7cd">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#a8781a" stroke-width="1.4"><path d="M2 5.4h9M8.2 2.6 11 5.4 8.2 8.2"></path><path d="M14 10.6H5M7.8 7.8 5 10.6l2.8 2.8"></path></svg>
+        <span class="card-title" style="color:#8a5a00">数据流转</span>
+        <span class="core">核心卖点</span>
+      </div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">导出 CSV / xlsx / JSON / SQL</span><div class="item-why">含长数值处理，把精度损失量实算给用户看</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">导入向导</span><div class="item-why">字段映射 + 类型推断。导出的反面，缺了不完整</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">数据传输</span><div class="item-why">跨连接、跨数据库类型搬表与数据</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">结构同步</span><div class="item-why">两库比对生成 DDL。我们的 TableDiff 引擎天然就是干这个的</div></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">数据同步</span><div class="item-why">逐行比对生成 INSERT/UPDATE/DELETE</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">从 ODBC / XML 导入</span></span></div>
+    </div>
+
+    <!-- 6 建模 -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><rect x="1.8" y="2.4" width="5" height="4" rx=".8"></rect><rect x="9.2" y="9.6" width="5" height="4" rx=".8"></rect><path d="M4.3 6.4v3.6a1.6 1.6 0 0 0 1.6 1.6h3.3"></path></svg>
+        <span class="card-title">建模</span>
+        <span class="card-note">06</span>
+      </div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">ER 图 · 逆向工程</span><div class="item-why">从既有库生成关系图。看懂陌生库的最快方式</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">正向工程</span><div class="item-why">从模型生成建库脚本</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">模型版本对比</span></span></div>
+      <div class="item"><span class="chip skip">不做</span><span><span class="item-name">概念 / 逻辑三层建模</span><div class="item-why">Navicat 有，但用的人极少；直接做物理模型即可</div></span></div>
+    </div>
+
+    <!-- 7 运维与自动化 -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><circle cx="8" cy="8" r="5.6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+        <span class="card-title">运维与自动化</span>
+        <span class="card-note">07</span>
+      </div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">备份与还原</span></span></div>
+      <div class="item"><span class="chip proto">本次入原型</span><span><span class="item-name">计划任务</span><div class="item-why">定时备份、定时同步、定时跑查询并导出</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">任务完成邮件通知</span></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">服务器监控</span><div class="item-why">Navicat 这块很弱，专业监控工具做得好得多</div></span></div>
+      <div class="item"><span class="chip skip">不做</span><span><span class="item-name">报表设计器</span><div class="item-why">是另一个品类的产品，不该塞进数据库工具</div></span></div>
+    </div>
+
+    <!-- 8 交付 -->
+    <div class="card">
+      <div class="card-head">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><path d="M8 2.6v7.6M5 7.4 8 10.4l3-3M3 12.6h10"></path></svg>
+        <span class="card-title">交付与工程</span>
+        <span class="card-note">08</span>
+      </div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">精度一致性测试</span><div class="item-why">新增驱动的准入门槛，不是「能连上」</div></span></div>
+      <div class="item"><span class="chip done">已实现</span><span><span class="item-name">DDL 生成测试 + 真库执行测试</span><div class="item-why">拼对字符串和数据库真认，是两件事</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">jpackage 打 MSI 安装包</span><div class="item-why">jlink 裁剪后约 60–80 MB</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">代码签名</span><div class="item-why">不签名会被 SmartScreen 拦。Azure Trusted Signing 按月付费</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">SQL Server · Oracle 驱动</span><div class="item-why">接入第一件事是跑通精度一致性测试</div></span></div>
+      <div class="item"><span class="chip plan">规划中</span><span><span class="item-name">自动更新</span></span></div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:20px;margin-top:20px;padding-top:16px;border-top:1px solid #e0e0da">
+    <span style="font-size:11.5px;color:#5f5f5a"><b style="color:#1c1c1a">取舍原则</b></span>
+    <span style="font-size:11.5px;color:#6b6b66">功能的价值不等于它在 Navicat 里的显眼程度。</span>
+    <span style="font-size:11.5px;color:#6b6b66">数据流转值得优先，因为它是真需求且缺少好的免费替代；</span>
+    <span style="font-size:11.5px;color:#6b6b66">报表与三层建模不做，因为那是别的品类。</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}
+a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.hd{display:flex;align-items:center;height:28px;padding:0 9px;font-size:11px;font-weight:600;color:#5f5f5a;border-right:1px solid #deded8;background:#eeeeeb;letter-spacing:.03em;flex-shrink:0;text-transform:uppercase}
+.cl{display:flex;align-items:center;height:26px;padding:0 9px;font-size:12px;border-right:1px solid #f0f0ec;border-bottom:1px solid #f2f2ee;overflow:hidden;white-space:nowrap;flex-shrink:0;background:#fff}
+.ct{justify-content:center}
+.gut{width:38px;justify-content:center;color:#a8a8a1;font-family:"JetBrains Mono",Consolas,monospace;font-size:10.5px;background:#f7f7f4;border-right:1px solid #e4e4e0}
+.row{display:flex}
+.ck{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:2px;background:#fff}
+.ck-on{width:13px;height:13px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;display:flex;align-items:center;justify-content:center}
+.tab{display:flex;align-items:center;height:32px;padding:0 14px;font-size:12.5px;color:#6b6b66}
+.btn{display:flex;align-items:center;justify-content:center;height:28px;padding:0 15px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;color:#3a3a36}
+.kw{color:#8a3d6b;font-weight:500}
+.ty{color:#2a5d8f}
+.st{color:#3a6b3a}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:1180px;height:740px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:38px;padding:0 14px;background:#f0f0ed;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4" style="margin-right:8px"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>
+    <span style="font-size:13px;font-weight:600">设计表 &#183; shop_prod.orders</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-bottom:1px solid #e4e4e0;flex-shrink:0">
+    <span style="font-size:12.5px;color:#5f5f5a">表名</span>
+    <span style="display:flex;align-items:center;height:28px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;font-size:12.5px;width:210px">orders</span>
+    <span style="font-size:12.5px;color:#5f5f5a">引擎</span>
+    <span style="display:flex;align-items:center;justify-content:space-between;height:28px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;font-size:12.5px;width:120px">InnoDB <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+    <span style="font-size:12.5px;color:#5f5f5a">字符集</span>
+    <span style="display:flex;align-items:center;justify-content:space-between;height:28px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;font-size:12.5px;width:180px">utf8mb4_0900_ai_ci <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:11.5px;color:#8a5a00;background:#fdf6e6;border:1px solid #ecdcb4;border-radius:3px;padding:2px 8px">1 处结构变更待应用</span>
+  </div>
+
+  <div style="display:flex;align-items:flex-end;height:33px;background:#f7f7f4;border-bottom:1px solid #d9d9d3;padding-left:10px;flex-shrink:0">
+    <span class="tab" style="background:#fff;border:1px solid #d9d9d3;border-bottom:1px solid #fff;border-radius:4px 4px 0 0;margin-bottom:-1px;color:#1c1c1a;font-weight:500">字段</span>
+    <span class="tab">索引 <span style="color:#a8a8a1;font-size:11px">4</span></span>
+    <span class="tab">外键 <span style="color:#a8a8a1;font-size:11px">1</span></span>
+    <span class="tab">触发器</span>
+    <span class="tab">分区</span>
+    <span class="tab">选项</span>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:5px;height:36px;padding:0 12px;border-bottom:1px solid #e4e4e0;flex-shrink:0">
+    <span class="btn" style="gap:5px"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.6"><path d="M8 3.4v9.2M3.4 8h9.2"></path></svg>添加字段</span>
+    <span class="btn" style="gap:5px"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.6"><path d="M3.4 8h9.2"></path></svg>删除</span>
+    <span class="btn" style="gap:5px"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.5"><path d="M8 3v10M4.6 6.4 8 3l3.4 3.4"></path></svg>上移</span>
+    <span class="btn" style="gap:5px"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.5"><path d="M8 13V3M4.6 9.6 8 13l3.4-3.4"></path></svg>下移</span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:11.5px;color:#8a8a84">DECIMAL 的精度与小数位直接决定读取时 BigDecimal 的 scale</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;flex-grow:1;min-height:0;overflow:hidden;border-bottom:1px solid #d9d9d3">
+    <div class="row" style="border-bottom:1px solid #cdcdc6">
+      <div class="hd gut"></div>
+      <div class="hd" style="width:176px">字段名</div>
+      <div class="hd" style="width:154px">数据类型</div>
+      <div class="hd" style="width:72px">长度</div>
+      <div class="hd" style="width:66px">小数位</div>
+      <div class="hd ct" style="width:66px">非空</div>
+      <div class="hd ct" style="width:58px">主键</div>
+      <div class="hd ct" style="width:58px">自增</div>
+      <div class="hd" style="width:156px">默认值</div>
+      <div class="hd" style="flex-grow:1">注释</div>
+    </div>
+
+    <div class="row"><div class="cl gut">1</div><div class="cl mono" style="width:176px;font-weight:500">id</div><div class="cl mono" style="width:154px;font-size:11.5px">BIGINT</div><div class="cl mono" style="width:72px;font-size:11.5px">20</div><div class="cl" style="width:66px"></div><div class="cl ct" style="width:66px"><span class="ck-on"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl ct" style="width:58px"><span class="ck-on"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl mono" style="width:156px;font-size:11.5px;color:#a8a8a1">—</div><div class="cl" style="flex-grow:1">订单号，雪花 ID</div></div>
+
+    <div class="row"><div class="cl gut">2</div><div class="cl mono" style="width:176px">user_id</div><div class="cl mono" style="width:154px;font-size:11.5px">INT</div><div class="cl mono" style="width:72px;font-size:11.5px">11</div><div class="cl" style="width:66px"></div><div class="cl ct" style="width:66px"><span class="ck-on"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl mono" style="width:156px;font-size:11.5px;color:#a8a8a1">—</div><div class="cl" style="flex-grow:1">下单用户</div></div>
+
+    <div class="row" style="background:#f5f8f8"><div class="cl gut" style="background:#dceaea;color:#0f6f70">3</div><div class="cl mono" style="width:176px;background:#f5f8f8;font-weight:500">amount</div><div class="cl mono" style="width:154px;background:#f5f8f8;font-size:11.5px;box-shadow:inset 0 0 0 2px #0f6f70">DECIMAL</div><div class="cl mono" style="width:72px;background:#f5f8f8;font-size:11.5px">38</div><div class="cl mono" style="width:66px;background:#f5f8f8;font-size:11.5px">10</div><div class="cl ct" style="width:66px;background:#f5f8f8"><span class="ck-on"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl ct" style="width:58px;background:#f5f8f8"><span class="ck"></span></div><div class="cl ct" style="width:58px;background:#f5f8f8"><span class="ck"></span></div><div class="cl mono" style="width:156px;background:#f5f8f8;font-size:11.5px">0.0000000000</div><div class="cl" style="flex-grow:1;background:#f5f8f8">订单金额</div></div>
+
+    <div class="row"><div class="cl gut">4</div><div class="cl mono" style="width:176px">currency</div><div class="cl mono" style="width:154px;font-size:11.5px">CHAR</div><div class="cl mono" style="width:72px;font-size:11.5px">3</div><div class="cl" style="width:66px"></div><div class="cl ct" style="width:66px"><span class="ck-on"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl mono" style="width:156px;font-size:11.5px">'CNY'</div><div class="cl" style="flex-grow:1">ISO 4217 币种</div></div>
+
+    <div class="row"><div class="cl gut">5</div><div class="cl mono" style="width:176px">status</div><div class="cl mono" style="width:154px;font-size:11.5px">VARCHAR</div><div class="cl mono" style="width:72px;font-size:11.5px">16</div><div class="cl" style="width:66px"></div><div class="cl ct" style="width:66px"><span class="ck-on"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl mono" style="width:156px;font-size:11.5px">'PENDING'</div><div class="cl" style="flex-grow:1">订单状态机</div></div>
+
+    <div class="row"><div class="cl gut">6</div><div class="cl mono" style="width:176px">created_at</div><div class="cl mono" style="width:154px;font-size:11.5px">DATETIME</div><div class="cl mono" style="width:72px;font-size:11.5px">6</div><div class="cl" style="width:66px"></div><div class="cl ct" style="width:66px"><span class="ck-on"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl mono" style="width:156px;font-size:11px">CURRENT_TIMESTAMP(6)</div><div class="cl" style="flex-grow:1">创建时间</div></div>
+
+    <div class="row"><div class="cl gut">7</div><div class="cl mono" style="width:176px">updated_at</div><div class="cl mono" style="width:154px;font-size:11.5px">DATETIME</div><div class="cl mono" style="width:72px;font-size:11.5px">6</div><div class="cl" style="width:66px"></div><div class="cl ct" style="width:66px"><span class="ck"></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl mono" style="width:156px;font-size:11px">CURRENT_TIMESTAMP(6)</div><div class="cl" style="flex-grow:1">更新时间</div></div>
+
+    <div class="row"><div class="cl gut">8</div><div class="cl mono" style="width:176px">note</div><div class="cl mono" style="width:154px;font-size:11.5px">VARCHAR</div><div class="cl mono" style="width:72px;font-size:11.5px">255</div><div class="cl" style="width:66px"></div><div class="cl ct" style="width:66px"><span class="ck"></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl ct" style="width:58px"><span class="ck"></span></div><div class="cl mono" style="width:156px;font-size:11.5px;color:#a8a8a1">NULL</div><div class="cl" style="flex-grow:1">备注</div></div>
+
+    <div class="row" style="background:#f6faf6"><div class="cl gut" style="background:#e4f0e4;color:#4d7a4d">9</div><div class="cl mono" style="width:176px;background:#f6faf6;font-weight:500">settled_at</div><div class="cl mono" style="width:154px;background:#f6faf6;font-size:11.5px">DATETIME</div><div class="cl mono" style="width:72px;background:#f6faf6;font-size:11.5px">6</div><div class="cl" style="width:66px;background:#f6faf6"></div><div class="cl ct" style="width:66px;background:#f6faf6"><span class="ck"></span></div><div class="cl ct" style="width:58px;background:#f6faf6"><span class="ck"></span></div><div class="cl ct" style="width:58px;background:#f6faf6"><span class="ck"></span></div><div class="cl mono" style="width:156px;background:#f6faf6;font-size:11.5px;color:#a8a8a1">NULL</div><div class="cl" style="flex-grow:1;background:#f6faf6;color:#4d7a4d">新增 &#183; 结算时间</div></div>
+
+    <div style="flex-grow:1;background:#fbfbf9"></div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;height:176px;background:#fafaf8;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:12px;height:29px;padding:0 12px;border-bottom:1px solid #eeeeea">
+      <span style="font-size:11px;font-weight:600;color:#5f5f5a;letter-spacing:.03em;text-transform:uppercase">变更预览</span>
+      <span style="font-size:11.5px;color:#8a8a84">应用前生成，可复制到迁移脚本</span>
+      <div style="flex-grow:1"></div>
+      <span style="display:flex;align-items:center;gap:5px;height:22px;padding:0 9px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:11.5px;color:#3a3a36">复制 SQL</span>
+    </div>
+    <div class="mono" style="padding:11px 14px;font-size:12px;line-height:20px;color:#1c1c1a">
+      <div><span class="kw">ALTER TABLE</span> `shop_prod`.`orders`</div>
+      <div>&nbsp;&nbsp;<span class="kw">ADD COLUMN</span> `settled_at` <span class="ty">DATETIME</span>(<span class="ty">6</span>) <span class="kw">NULL</span> <span class="kw">COMMENT</span> <span class="st">'结算时间'</span> <span class="kw">AFTER</span> `note`;</div>
+      <div style="height:8px"></div>
+      <div style="color:#a8a8a1;font-style:italic">-- amount 未变更：DECIMAL(38,10) 保持不变</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:9px;height:54px;padding:0 16px;background:#f0f0ed;border-top:1px solid #d9d9d3;flex-shrink:0">
+    <span style="font-size:11.5px;color:#8a8a84">变更将在一个事务内执行</span>
+    <div style="flex-grow:1"></div>
+    <span class="btn">取消</span>
+    <span class="btn" style="background:#0f6f70;border-color:#0f6f70;color:#fff;font-weight:500">应用变更</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}
+a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.fr{display:flex;align-items:center;gap:12px}
+.lb{width:84px;flex-shrink:0;text-align:right;font-size:12.5px;color:#5f5f5a}
+.in{display:flex;align-items:center;height:30px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;flex-grow:1;min-width:0}
+.ph{color:#b0b0a9}
+.tab{display:flex;align-items:center;height:33px;padding:0 15px;font-size:12.5px;color:#6b6b66}
+.btn{display:flex;align-items:center;justify-content:center;height:29px;padding:0 17px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;color:#3a3a36}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:580px;height:720px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:38px;padding:0 14px;background:#f0f0ed;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <span style="font-size:13px;font-weight:600">新建连接</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <div style="display:flex;align-items:flex-end;height:34px;background:#f7f7f4;border-bottom:1px solid #d9d9d3;padding-left:10px;flex-shrink:0">
+    <span class="tab" style="background:#fff;border:1px solid #d9d9d3;border-bottom:1px solid #fff;border-radius:4px 4px 0 0;margin-bottom:-1px;color:#1c1c1a;font-weight:500">常规</span>
+    <span class="tab">SSH 隧道</span>
+    <span class="tab">SSL</span>
+    <span class="tab">高级</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:15px;padding:22px 20px 0 20px;flex-grow:1;min-height:0">
+
+    <div class="fr">
+      <span class="lb">连接名</span>
+      <span class="in">shop-prod-读库</span>
+    </div>
+
+    <div class="fr">
+      <span class="lb">数据库</span>
+      <span class="in" style="justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:8px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.3"><ellipse cx="8" cy="3.8" rx="5" ry="2"></ellipse><path d="M3 3.8v8.4c0 1.1 2.2 2 5 2s5-.9 5-2V3.8"></path><path d="M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"></path></svg>
+          MySQL / MariaDB
+        </span>
+        <span style="color:#a8a8a1;font-size:9px">&#9660;</span>
+      </span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:6px;padding-left:96px;margin-top:-6px">
+      <span style="font-size:11px;color:#8a8a84">经 JDBC 驱动连接</span>
+      <span class="mono" style="font-size:10.5px;color:#5f5f5a;background:#f2f2ef;border:1px solid #e4e4e0;border-radius:3px;padding:1px 6px">mysql-connector-j 9.x</span>
+    </div>
+
+    <div style="height:1px;background:#eeeeea;margin:3px 0"></div>
+
+    <div class="fr">
+      <span class="lb">主机</span>
+      <span class="in" style="flex-grow:1">10.20.3.14</span>
+      <span class="lb" style="width:auto">端口</span>
+      <span class="in mono" style="flex-grow:0;width:78px">3306</span>
+    </div>
+
+    <div class="fr">
+      <span class="lb">用户名</span>
+      <span class="in">app_readonly</span>
+    </div>
+
+    <div class="fr">
+      <span class="lb">密码</span>
+      <span class="in" style="letter-spacing:2px">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;</span>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:9px;padding-left:96px;margin-top:-5px">
+      <span style="display:flex;align-items:center;justify-content:center;width:14px;height:14px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;flex-shrink:0;margin-top:1px">
+        <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.4"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg>
+      </span>
+      <span style="display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:12px">保存密码</span>
+        <span style="font-size:11px;color:#8a8a84;line-height:1.5">经 Windows DPAPI 加密，绑定当前用户账户，密钥不落盘</span>
+      </span>
+    </div>
+
+    <div class="fr">
+      <span class="lb">默认库</span>
+      <span class="in" style="justify-content:space-between">shop_prod <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+    </div>
+
+    <div style="height:1px;background:#eeeeea;margin:3px 0"></div>
+
+    <div class="fr">
+      <span class="lb">时区</span>
+      <span class="in" style="justify-content:space-between">Asia/Shanghai (+08:00) <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+    </div>
+
+    <div class="fr">
+      <span class="lb">字符集</span>
+      <span class="in" style="justify-content:space-between">utf8mb4 <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:9px;padding-left:96px;margin-top:-5px">
+      <span style="display:flex;align-items:center;justify-content:center;width:14px;height:14px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;flex-shrink:0">
+        <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.4"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg>
+      </span>
+      <span style="font-size:12px">只读模式</span>
+      <span style="font-size:11px;color:#8a8a84">拦截本连接上的所有写操作</span>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:9px;margin:0 20px;padding:9px 12px;background:#f1f6f1;border:1px solid #cfe0cf;border-radius:4px;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#4d7a4d" stroke-width="1.6"><circle cx="8" cy="8" r="6.2"></circle><path d="M5.2 8.2 7.1 10.1l3.8-4.2"></path></svg>
+    <span style="font-size:12px;color:#3a6b3a">连接成功</span>
+    <span class="mono" style="font-size:11px;color:#5f7a5f">MySQL 8.0.35 &#183; 握手 38 ms</span>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:9px;height:56px;padding:0 20px;background:#f7f7f4;border-top:1px solid #e4e4e0;flex-shrink:0;margin-top:14px">
+    <span class="btn">测试连接</span>
+    <div style="flex-grow:1"></div>
+    <span class="btn">取消</span>
+    <span class="btn" style="background:#0f6f70;border-color:#0f6f70;color:#fff;font-weight:500">保存</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

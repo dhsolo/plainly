@@ -1,0 +1,361 @@
+package com.plainly.driver.jdbc;
+
+import com.plainly.driver.ConnectionConfig;
+import com.plainly.driver.DbConnection;
+import com.plainly.driver.DbType;
+import com.plainly.driver.QueryResult;
+import com.plainly.driver.SqlDialect;
+import com.plainly.driver.TypeCategory;
+import com.plainly.driver.ddl.ColumnDraft;
+import com.plainly.driver.ddl.TableChange;
+import com.plainly.driver.jdbc.dialect.Dialects;
+import com.plainly.driver.meta.DbObjects.ColumnInfo;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * 把 Oracle 方言生成的语句<b>真的执行一遍</b>。
+ *
+ * <h2>为什么用 H2 的 Oracle 兼容模式，以及它证明得了什么</h2>
+ * 手上没有 Oracle 实例，也没有 Docker。H2 的 {@code MODE=Oracle} 认
+ * {@code NUMBER(38,10)}、{@code VARCHAR2}、{@code MODIFY (...)}、
+ * {@code RENAME COLUMN}、{@code COMMENT ON}、{@code OFFSET ... FETCH}、
+ * {@code DUAL}——本方言产出的语句形态基本都能在上面跑。
+ *
+ * <p><b>它证明的是</b>：语句拼得完整、括号配对、子句顺序合法、
+ * 生成的 DDL 之间能连着跑通（改完列还能查、还能写回）。
+ * 光比字符串抓不到这些——少一个右括号，字符串断言照样能写成「期望值也少一个」。
+ *
+ * <p><b>它证明不了的是</b>：H2 不是 Oracle。ORA-01442 这类
+ * 「重复声明非空」的约束 H2 根本不管，Oracle 的数据字典视图、
+ * LONG 列的读取、NLS 行为，这里一概盖不到。所以 {@link DbType#ORACLE}
+ * 仍然标着「未验证精度」，真正的准入门槛是 {@link PrecisionConformanceTest}
+ * 跑在真实实例上。这套测试是<b>下限</b>，不是通行证。
+ */
+@DisplayName("Oracle 语法冒烟 · H2 兼容模式")
+class OracleSyntaxSmokeTest {
+
+    private static DbConnection conn;
+    private static final SqlDialect ORACLE = Dialects.forType(DbType.ORACLE);
+
+    private static final String SCHEMA = "PUBLIC";
+    private static final String TABLE = "ORA_PROBE";
+
+    /** 30 位有效数字，远超 double。NUMBER(38,10) 装得下，用来看精度有没有掉。 */
+    private static final String DECIMAL_FULL = "12345678901234567890.1234567890";
+
+    @BeforeAll
+    static void open() {
+        conn = JdbcConnections.open(new ConnectionConfig()
+                .setName("oracle-syntax-probe")
+                .setType(DbType.H2)
+                .setFilePath("mem:plainly_oracle;MODE=Oracle;DB_CLOSE_DELAY=-1")
+                .setUser("sa")
+                .setPassword(""));
+
+        conn.execute("DROP TABLE IF EXISTS " + TABLE, 0);
+        // 建表语句本身也由方言生成，顺便验一遍 DEFAULT / NOT NULL 的顺序
+        conn.execute(ORACLE.createTableDdl(null, TABLE, List.of(
+                        draft("ID", "NUMBER", 19, 0, false, null),
+                        draft("AMOUNT", "NUMBER", 38, 10, true, null),
+                        draft("NOTE", "VARCHAR2", 64, 0, true, "'CNY'")),
+                List.of("ID")), 0);
+
+        for (int i = 1; i <= 5; i++) {
+            conn.execute("INSERT INTO " + TABLE + " (ID, AMOUNT, NOTE) VALUES ("
+                    + i + ", " + DECIMAL_FULL + ", 'r" + i + "')", 0);
+        }
+    }
+
+    @AfterAll
+    static void close() {
+        if (conn != null) {
+            conn.close();
+        }
+    }
+
+    // ------------------------------------------------------------------ 夹具
+
+    private static ColumnInfo col(String name, String type, int precision, int scale,
+                                  boolean nullable, String defaultValue) {
+        return new ColumnInfo(name, type, com.plainly.driver.TypeNames.categoryOf(type),
+                precision, scale, nullable, false, false, defaultValue, "", 0);
+    }
+
+    private static ColumnDraft draft(String name, String type, int precision, int scale,
+                                     boolean nullable, String defaultValue) {
+        return ColumnDraft.of(col(name, type, precision, scale, nullable, defaultValue));
+    }
+
+    /** 跑一条方言生成的语句；跑不通就把语句原文带进失败信息里。 */
+    private static void run(String sql) {
+        try {
+            conn.execute(sql, 0);
+        } catch (RuntimeException e) {
+            throw new AssertionError("方言生成的语句执行失败：\n" + sql + "\n" + e.getMessage(), e);
+        }
+    }
+
+    private static void runAll(List<SqlDialect.TableChangeSql> statements) {
+        assertFalse(statements.isEmpty(), "方言没有产出任何语句");
+        statements.forEach(s -> run(s.sql()));
+    }
+
+    // ------------------------------------------------------------------ 自增列
+
+    /**
+     * 自增列建得出来，而且能不给主键值就插进去。
+     *
+     * <p>光断言语句里含 "IDENTITY" 是不够的：那只证明字符串拼对了。
+     * 真正要证的是「这张表能当自增表用」——所以建完之后不给 ID 插一条，
+     * 插得进去才算数。
+     */
+    @Test
+    @DisplayName("自增列：建得出来，且不给主键值也能插")
+    void identityColumnWorks() {
+        conn.execute("DROP TABLE IF EXISTS ORA_IDENT", 0);
+        ColumnDraft id = draft("ID", "NUMBER", 19, 0, false, null);
+        id.setAutoIncrement(true);
+        String ddl = ORACLE.createTableDdl(null, "ORA_IDENT",
+                List.of(id, draft("NOTE", "VARCHAR2", 32, 0, true, null)), List.of("ID"));
+        assertTrue(ddl.contains("GENERATED BY DEFAULT AS IDENTITY"), ddl);
+        run(ddl);
+
+        run("INSERT INTO ORA_IDENT (NOTE) VALUES ('auto')");
+        assertEquals("1", conn.scalar("SELECT COUNT(*) FROM ORA_IDENT WHERE ID IS NOT NULL"),
+                "不给 ID 也要能插进去，且 ID 有值——这才叫自增");
+    }
+
+    @Test
+    @DisplayName("自增用 BY DEFAULT 而不是 ALWAYS：复制表要把源表主键原样写过去")
+    void identityAllowsExplicitValues() {
+        conn.execute("DROP TABLE IF EXISTS ORA_IDENT2", 0);
+        ColumnDraft id = draft("ID", "NUMBER", 19, 0, false, null);
+        id.setAutoIncrement(true);
+        run(ORACLE.createTableDdl(null, "ORA_IDENT2", List.of(id), List.of("ID")));
+
+        // GENERATED ALWAYS 会让这一条被数据库直接拒绝，
+        // 而「复制表并带数据」做的正是这件事
+        run("INSERT INTO ORA_IDENT2 (ID) VALUES (900)");
+        assertEquals("900", conn.scalar("SELECT MAX(ID) FROM ORA_IDENT2"));
+    }
+
+    @Test
+    @DisplayName("界面不再说「自增得自己补」，但计数器那一句还得说")
+    void reasonsAreAccurate() {
+        assertNull(ORACLE.autoIncrementUnsupportedReason(),
+                "列定义已经写得出自增了，再说做不到就是假话");
+        assertNull(ORACLE.restartAutoIncrementDdl("S", "T", "ID", 26),
+                "改种子要 12.2 的 START WITH LIMIT VALUE，这里验证不了，就不发这条语句");
+    }
+
+    @Test
+    @DisplayName("达梦用它自己的 IDENTITY(1, 1)")
+    void damengUsesItsOwnForm() {
+        ColumnDraft id = draft("ID", "NUMBER", 19, 0, false, null);
+        id.setAutoIncrement(true);
+        String ddl = Dialects.forType(DbType.DM)
+                .createTableDdl(null, "DM_IDENT", List.of(id), List.of("ID"));
+        assertTrue(ddl.contains("IDENTITY(1, 1)"), ddl);
+        assertFalse(ddl.contains("GENERATED"), "别把 Oracle 那套继承过去：" + ddl);
+    }
+
+    // ------------------------------------------------------------------ 建表与精度
+
+    @Test
+    @DisplayName("方言生成的建表语句能跑通，且带默认值的非空列顺序正确")
+    void createTableRuns() {
+        String ddl = ORACLE.createTableDdl(null, "ORA_ORDER_SEQ", List.of(
+                        draft("ID", "NUMBER", 19, 0, false, "0"),
+                        draft("CODE", "VARCHAR2", 32, 0, false, "'NEW'")),
+                List.of("ID"));
+
+        // 这一条是本测试存在的主要理由：DEFAULT 写在 NOT NULL 后面，
+        // 在真 Oracle 上是 ORA-00907，而字符串断言只能证明「我写的和我想的一样」
+        assertTrue(ddl.contains("DEFAULT 0 NOT NULL"), ddl);
+        run("DROP TABLE IF EXISTS ORA_ORDER_SEQ");
+        run(ddl);
+    }
+
+    @Test
+    @DisplayName("NUMBER(38,10) 满位值读出来一位不差")
+    void numberKeepsFullPrecision() {
+        QueryResult r = conn.execute("SELECT AMOUNT FROM " + TABLE + " WHERE ID = 1", 10);
+        assertEquals(DECIMAL_FULL, r.rows().get(0).get(0));
+        assertEquals(TypeCategory.EXACT_NUMERIC, r.columns().get(0).category(),
+                "NUMBER 必须落在 EXACT_NUMERIC，否则读取会走有损路径");
+    }
+
+    // ------------------------------------------------------------------ 分页
+
+    @Test
+    @DisplayName("OFFSET / FETCH 分页真的翻得动，且不多出一列")
+    void pagingWorksAndAddsNoColumn() {
+        String sql = ORACLE.selectPage(null, TABLE, "\"ID\"", 2, 2);
+        QueryResult r = conn.execute(sql, 10);
+
+        assertEquals(2, r.rows().size(), sql);
+        assertEquals("3", r.rows().get(0).get(0), "第二页第一行应当是 ID=3：" + sql);
+        // ROWNUM 那种套三层的写法会多带一列 RN 出来，跟着进网格
+        assertEquals(3, r.columns().size(),
+                "结果集的列数应当和表一致，多出来的列会跟着进网格：" + r.columns());
+    }
+
+    @Test
+    @DisplayName("第一页不产出 OFFSET 子句")
+    void firstPageHasNoOffset() {
+        String sql = ORACLE.selectPage(null, TABLE, null, 2, 0);
+        assertFalse(sql.contains("OFFSET"), sql);
+        assertEquals(2, conn.execute(sql, 10).rows().size());
+    }
+
+    // ------------------------------------------------------------------ 改结构
+
+    @Test
+    @DisplayName("加列 → 改定义 → 改名 → 删列，四步生成的语句连着跑通")
+    void alterSequenceRuns() {
+        String table = "ORA_ALTER";
+        run("DROP TABLE IF EXISTS " + table);
+        run(ORACLE.createTableDdl(null, table, List.of(
+                draft("ID", "NUMBER", 19, 0, false, null)), List.of("ID")));
+
+        // 加一列
+        ColumnDraft memo = draft("MEMO", "VARCHAR2", 50, 0, true, null);
+        runAll(ORACLE.ddlFor(null, table, new TableChange.AddColumn(memo, null)));
+
+        // 加宽并加默认值、改成非空——一条 MODIFY
+        ColumnInfo before = col("MEMO", "VARCHAR2", 50, 0, true, null);
+        ColumnDraft after = draft("MEMO", "VARCHAR2", 200, 0, false, "'-'");
+        runAll(ORACLE.ddlFor(null, table, new TableChange.ModifyColumn(before, after)));
+
+        // 改名
+        ColumnInfo wide = col("MEMO", "VARCHAR2", 200, 0, false, "'-'");
+        ColumnDraft renamed = draft("MEMO", "VARCHAR2", 200, 0, false, "'-'");
+        renamed.setName("REMARK");
+        runAll(ORACLE.ddlFor(null, table, new TableChange.RenameColumn(wide, renamed)));
+
+        // 改完之后表还得能用：插一行、查回来
+        run("INSERT INTO " + table + " (ID) VALUES (1)");
+        QueryResult r = conn.execute("SELECT REMARK FROM " + table + " WHERE ID = 1", 10);
+        assertEquals("-", r.rows().get(0).get(0), "MODIFY 里的默认值没有生效");
+
+        // 删列
+        runAll(ORACLE.ddlFor(null, table,
+                new TableChange.DropColumn(col("REMARK", "VARCHAR2", 200, 0, false, null))));
+        assertEquals(1, conn.execute("SELECT * FROM " + table, 10).columns().size());
+    }
+
+    @Test
+    @DisplayName("列注释走 COMMENT ON COLUMN，能跑通")
+    void commentOnColumnRuns() {
+        String table = "ORA_COMMENT";
+        run("DROP TABLE IF EXISTS " + table);
+        run(ORACLE.createTableDdl(null, table, List.of(
+                draft("ID", "NUMBER", 19, 0, false, null)), List.of("ID")));
+
+        ColumnDraft withComment = draft("ID", "NUMBER", 19, 0, false, null);
+        withComment.setComment("主键");
+        List<SqlDialect.TableChangeSql> out = ORACLE.ddlFor(null, table,
+                new TableChange.ModifyColumn(col("ID", "NUMBER", 19, 0, false, null), withComment));
+
+        assertTrue(out.stream().anyMatch(s -> s.sql().startsWith("COMMENT ON COLUMN")),
+                "注释应当是一条独立的 COMMENT ON 语句：" + out);
+        runAll(out);
+    }
+
+    @Test
+    @DisplayName("改主键的两条语句能跑通")
+    void primaryKeyChangeRuns() {
+        String table = "ORA_PK";
+        run("DROP TABLE IF EXISTS " + table);
+        run(ORACLE.createTableDdl(null, table, List.of(
+                        draft("A", "NUMBER", 19, 0, false, null),
+                        draft("B", "NUMBER", 19, 0, false, null)),
+                List.of("A")));
+
+        runAll(ORACLE.ddlFor(null, table,
+                new TableChange.ChangePrimaryKey(List.of("A"), List.of("A", "B"))));
+    }
+
+    // ------------------------------------------------------------------ 视图与索引
+
+    @Test
+    @DisplayName("CREATE OR REPLACE VIEW、CREATE INDEX、DROP INDEX 都能跑通")
+    void viewAndIndexRun() {
+        run(ORACLE.createOrReplaceViewDdl(null, "V_ORA_PROBE",
+                "SELECT ID, AMOUNT FROM " + TABLE));
+        assertEquals(5, conn.execute("SELECT * FROM V_ORA_PROBE", 10).rows().size());
+
+        run(ORACLE.createIndexDdl(null, TABLE,
+                new com.plainly.driver.meta.DbObjects.IndexInfo(
+                        "IDX_ORA_NOTE", List.of("NOTE"), false, false)));
+        run(ORACLE.dropIndexDdl(null, TABLE, "IDX_ORA_NOTE"));
+
+        run(ORACLE.dropViewDdl(null, "V_ORA_PROBE"));
+    }
+
+    @Test
+    @DisplayName("外键的加与删能跑通")
+    void foreignKeyRuns() {
+        run("DROP TABLE IF EXISTS ORA_CHILD");
+        run("DROP TABLE IF EXISTS ORA_PARENT");
+        run(ORACLE.createTableDdl(null, "ORA_PARENT", List.of(
+                draft("ID", "NUMBER", 19, 0, false, null)), List.of("ID")));
+        run(ORACLE.createTableDdl(null, "ORA_CHILD", List.of(
+                        draft("ID", "NUMBER", 19, 0, false, null),
+                        draft("PARENT_ID", "NUMBER", 19, 0, true, null)),
+                List.of("ID")));
+
+        run(ORACLE.addForeignKeyDdl(null, "ORA_CHILD", "FK_ORA_CHILD_PARENT",
+                List.of("PARENT_ID"), null, "ORA_PARENT", List.of("ID"), null, "CASCADE"));
+        run(ORACLE.dropForeignKeyDdl(null, "ORA_CHILD", "FK_ORA_CHILD_PARENT"));
+    }
+
+    // ------------------------------------------------------------------ 参数化写回
+
+    @Test
+    @DisplayName("参数化 UPDATE 写回满位小数，读回来一位不差")
+    void parameterisedUpdateKeepsPrecision() {
+        ColumnInfo amount = col("AMOUNT", "NUMBER", 38, 10, true, null);
+        ColumnInfo id = col("ID", "NUMBER", 19, 0, false, null);
+
+        SqlDialect.PreparedSql update = ORACLE.buildUpdate(null, TABLE,
+                List.of(amount), List.of(id));
+        assertTrue(update.sql().contains("?"), update.sql());
+
+        String negative = "-99999999999999999999.9999999999";
+        assertEquals(1, conn.executeUpdate(update, List.of(negative, "5")));
+        assertEquals(negative,
+                conn.execute("SELECT AMOUNT FROM " + TABLE + " WHERE ID = 5", 10)
+                        .rows().get(0).get(0),
+                "写回后再读出现偏差，说明绑定路径经过了 double");
+    }
+
+    @Test
+    @DisplayName("清空表的语句能跑通，且给出的说明是 Oracle 自己的行为")
+    void truncateRunsAndIsExplained() {
+        String table = "ORA_TRUNC";
+        run("DROP TABLE IF EXISTS " + table);
+        run(ORACLE.createTableDdl(null, table, List.of(
+                draft("ID", "NUMBER", 19, 0, false, null)), List.of("ID")));
+        run("INSERT INTO " + table + " (ID) VALUES (1)");
+
+        run(ORACLE.truncateTableDdl(null, table));
+        assertEquals("0", conn.scalar("SELECT COUNT(*) FROM " + table));
+
+        String note = ORACLE.truncateNote();
+        assertNotNull(note);
+        assertTrue(note.contains("ORA-02266"),
+                "说明里该点出被外键引用时的具体报错，否则跟通用说法没区别：" + note);
+    }
+}

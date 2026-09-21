@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.hd{display:flex;align-items:center;height:27px;padding:0 9px;font-size:10.5px;font-weight:600;color:#5f5f5a;border-right:1px solid #deded8;background:#eeeeeb;letter-spacing:.03em;flex-shrink:0;text-transform:uppercase}
+.cl{display:flex;align-items:center;height:26px;padding:0 9px;font-size:11.5px;border-right:1px solid #f0f0ec;border-bottom:1px solid #f2f2ee;overflow:hidden;white-space:nowrap;flex-shrink:0;background:#fff}
+.row{display:flex}
+.num{font-family:"JetBrains Mono",Consolas,monospace;justify-content:flex-end}
+.sel-box{display:flex;align-items:center;justify-content:space-between;height:28px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px}
+.btn{display:flex;align-items:center;justify-content:center;height:28px;padding:0 14px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;color:#3a3a36}
+.ck{width:13px;height:13px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ck-off{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:2px;background:#fff;flex-shrink:0}
+.rd{width:13px;height:13px;border:4px solid #0f6f70;border-radius:50%;background:#fff;flex-shrink:0}
+.rd-off{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:50%;background:#fff;flex-shrink:0}
+.stat{display:flex;flex-direction:column;gap:2px;padding:9px 14px;border:1px solid #e0e0da;border-radius:5px;background:#fff;min-width:132px}
+.stat-n{font-family:"JetBrains Mono",Consolas,monospace;font-size:19px;font-weight:500;letter-spacing:-.02em}
+.stat-l{font-size:10.5px;color:#8a8a84}
+.tag{font-size:9.5px;padding:1px 6px;border-radius:3px;white-space:nowrap}
+.t-ins{color:#3a6b3a;background:#eef5ee;border:1px solid #d4e4d4}
+.t-upd{color:#8a5a00;background:#fdf6e6;border:1px solid #ecdcb4}
+.t-del{color:#a0402a;background:#fdf5f3;border:1px solid #e8cfc7}
+.kw{color:#8a3d6b;font-weight:500}
+.st{color:#3a6b3a}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:1180px;height:820px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:38px;padding:0 14px;background:#f0f0ed;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4" style="margin-right:8px"><rect x="2" y="3" width="12" height="10" rx="1"></rect><path d="M2 6.4h12M6 6.4V13"></path></svg>
+    <span style="font-size:13px;font-weight:600">数据同步</span>
+    <span style="font-size:12px;color:#8a8a84;margin-left:8px">逐行比对，生成把目标改成源的 INSERT / UPDATE / DELETE</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <!-- 源 / 目标 / 比对键 -->
+  <div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 14px;border-bottom:1px solid #e4e4e0;flex-shrink:0">
+    <span class="sel-box" style="flex-grow:1">
+      <span style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:4px;background:#5d8f5d"></span>shop-test / shop_test.coupons</span>
+      <span style="color:#a8a8a1;font-size:9px">&#9660;</span>
+    </span>
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.6"><path d="M2.5 8h11M9.6 4.1 13.5 8l-3.9 3.9"></path></svg>
+    <span class="sel-box" style="flex-grow:1;border-color:#e0b4a8;background:#fdf7f5">
+      <span style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:4px;background:#a0402a"></span>shop-prod / shop_prod.coupons <span class="tag t-del">生产</span></span>
+      <span style="color:#a8a8a1;font-size:9px">&#9660;</span>
+    </span>
+    <span style="font-size:12px;color:#5f5f5a">比对键</span>
+    <span class="sel-box" style="width:120px"><span class="mono" style="font-size:11.5px">id</span> <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+    <span class="btn" style="background:#0f6f70;border-color:#0f6f70;color:#fff;font-weight:500">重新比对</span>
+  </div>
+
+  <!-- 摘要 + 比较方式 -->
+  <div style="display:flex;align-items:stretch;gap:12px;padding:12px 14px;border-bottom:1px solid #e4e4e0;flex-shrink:0">
+    <div class="stat"><span class="stat-n" style="color:#3a6b3a">128</span><span class="stat-l">仅源有 · 将 INSERT</span></div>
+    <div class="stat"><span class="stat-n" style="color:#8a5a00">36</span><span class="stat-l">两侧不同 · 将 UPDATE</span></div>
+    <div class="stat"><span class="stat-n" style="color:#a0402a">4</span><span class="stat-l">仅目标有 · 将 DELETE</span></div>
+    <div class="stat"><span class="stat-n" style="color:#a8a8a1">3,033</span><span class="stat-l">一致 · 不动</span></div>
+
+    <div style="display:flex;flex-direction:column;gap:6px;padding:8px 13px;border:1px solid #ecdcb4;border-radius:5px;background:#fefbf4;flex-grow:1">
+      <div style="display:flex;align-items:center;gap:7px">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#a8781a" stroke-width="1.5"><path d="M8 2.2 14.4 13.4H1.6z"></path><path d="M8 6.4v3.2M8 11.4v.6"></path></svg>
+        <span style="font-size:11.5px;font-weight:600;color:#8a5a00">数值比较方式</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:18px">
+        <span style="display:flex;align-items:center;gap:6px;font-size:12px"><span class="rd"></span>按文本，严格</span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5f5f5a"><span class="rd-off"></span>按数值，忽略末尾零</span>
+      </div>
+      <span style="font-size:10.5px;color:#8a5a00;line-height:1.5">
+        两侧 scale 不同的话，<span class="mono">1.10</span> 与 <span class="mono">1.1</span> 文本不同、数值相同。
+        严格模式会把它算成差异并生成 UPDATE——多数时候这正是你要的（把目标的存储形式也对齐）；
+        只想比业务值时才切到数值模式。
+      </span>
+    </div>
+  </div>
+
+  <!-- 差异明细 -->
+  <div style="display:flex;flex-direction:column;flex-grow:1;min-height:0">
+    <div style="display:flex;align-items:center;gap:10px;height:31px;padding:0 12px;border-bottom:1px solid #e4e4e0">
+      <span style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em">差异明细</span>
+      <span style="font-size:11px;color:#8a8a84">168 行，已选 164</span>
+      <div style="flex-grow:1"></div>
+      <span style="font-size:11px;color:#0f6f70">仅显示差异列</span>
+    </div>
+
+    <div class="row" style="border-bottom:1px solid #cdcdc6">
+      <div class="hd" style="width:32px"></div>
+      <div class="hd" style="width:84px">动作</div>
+      <div class="hd" style="width:70px">id</div>
+      <div class="hd" style="width:130px">code</div>
+      <div class="hd" style="flex-grow:1">源 · discount</div>
+      <div class="hd" style="flex-grow:1">目标 · discount</div>
+      <div class="hd" style="width:150px">expires_at</div>
+    </div>
+
+    <div class="row"><div class="cl" style="width:32px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="width:84px"><span class="tag t-upd">UPDATE</span></div><div class="cl num" style="width:70px">1042</div><div class="cl mono" style="width:130px">NEWYEAR26</div><div class="cl num" style="flex-grow:1;background:#f7fbf7;font-weight:500">0.150000</div><div class="cl num" style="flex-grow:1;background:#fdf5f3">0.120000</div><div class="cl mono" style="width:150px;color:#a8a8a1">2026-12-31 23:59:59</div></div>
+
+    <div class="row"><div class="cl" style="width:32px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="width:84px"><span class="tag t-upd">UPDATE</span></div><div class="cl num" style="width:70px">1043</div><div class="cl mono" style="width:130px">SPRING26</div><div class="cl num" style="flex-grow:1;background:#f7fbf7;font-weight:500">0.100000</div><div class="cl num" style="flex-grow:1;background:#fdf5f3">0.1</div><div class="cl mono" style="width:150px;color:#a8a8a1">2026-04-30 23:59:59</div></div>
+
+    <div class="row" style="background:#fdfbf4"><div class="cl" style="width:32px;background:#fdfbf4"></div><div class="cl" style="width:84px;background:#fdfbf4"></div><div class="cl" style="flex-grow:1;background:#fdfbf4;color:#8a5a00;font-size:10.5px;border-right:none">↑ 这一行数值相同、文本不同（scale 差异）。切到「按数值」比较即可排除。</div></div>
+
+    <div class="row"><div class="cl" style="width:32px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="width:84px"><span class="tag t-ins">INSERT</span></div><div class="cl num" style="width:70px">2001</div><div class="cl mono" style="width:130px">SUMMER26</div><div class="cl num" style="flex-grow:1;background:#f7fbf7;font-weight:500">0.200000</div><div class="cl" style="flex-grow:1;color:#a8a8a1;font-style:italic;font-size:11px">目标不存在</div><div class="cl mono" style="width:150px;color:#a8a8a1">2026-08-31 23:59:59</div></div>
+
+    <div class="row"><div class="cl" style="width:32px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="width:84px"><span class="tag t-ins">INSERT</span></div><div class="cl num" style="width:70px">2002</div><div class="cl mono" style="width:130px">VIP-RENEW</div><div class="cl num" style="flex-grow:1;background:#f7fbf7;font-weight:500">0.350000</div><div class="cl" style="flex-grow:1;color:#a8a8a1;font-style:italic;font-size:11px">目标不存在</div><div class="cl mono" style="width:150px;color:#a8a8a1">2027-01-31 23:59:59</div></div>
+
+    <div class="row"><div class="cl" style="width:32px;justify-content:center"><span class="ck-off"></span></div><div class="cl" style="width:84px"><span class="tag t-del">DELETE</span></div><div class="cl num" style="width:70px;color:#8a8a84">907</div><div class="cl mono" style="width:130px;color:#8a8a84">LEGACY2024</div><div class="cl" style="flex-grow:1;color:#a8a8a1;font-style:italic;font-size:11px">源不存在</div><div class="cl num" style="flex-grow:1;background:#fdf5f3;color:#8a8a84">0.050000</div><div class="cl mono" style="width:150px;color:#a8a8a1">2024-12-31 23:59:59</div></div>
+
+    <div class="row"><div class="cl" style="width:32px;justify-content:center"><span class="ck-off"></span></div><div class="cl" style="width:84px"><span class="tag t-del">DELETE</span></div><div class="cl num" style="width:70px;color:#8a8a84">908</div><div class="cl mono" style="width:130px;color:#8a8a84">LEGACY2025</div><div class="cl" style="flex-grow:1;color:#a8a8a1;font-style:italic;font-size:11px">源不存在</div><div class="cl num" style="flex-grow:1;background:#fdf5f3;color:#8a8a84">0.080000</div><div class="cl mono" style="width:150px;color:#a8a8a1">2025-12-31 23:59:59</div></div>
+
+    <div style="flex-grow:1;background:#fbfbf9"></div>
+
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 12px;background:#fdf7f5;border-top:1px solid #f0e0da">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#a8781a" stroke-width="1.5" style="flex-shrink:0"><path d="M8 2.2 14.4 13.4H1.6z"></path><path d="M8 6.4v3.2M8 11.4v.6"></path></svg>
+      <span style="font-size:10.5px;color:#8a5a00;line-height:1.5">DELETE 默认不勾选。同步方向是「以源为准」，但源里没有不等于该删——很可能只是源库还没同步过来。</span>
+    </div>
+  </div>
+
+  <!-- SQL -->
+  <div style="display:flex;flex-direction:column;height:150px;background:#fafaf8;border-top:1px solid #d9d9d3;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:12px;height:30px;padding:0 12px;border-bottom:1px solid #eeeeea">
+      <span style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em">同步脚本</span>
+      <span style="font-size:11px;color:#8a8a84">全参数化，数值以 BigDecimal 绑定</span>
+      <div style="flex-grow:1"></div>
+      <span class="btn" style="height:22px;font-size:11.5px;padding:0 9px">复制 SQL</span>
+    </div>
+    <div class="mono" style="padding:10px 14px;font-size:12px;line-height:19px;overflow:hidden">
+      <div><span class="kw">UPDATE</span> `shop_prod`.`coupons` <span class="kw">SET</span> `discount` = ? <span class="kw">WHERE</span> `id` = ?;  <span style="color:#a8a8a1">-- 36 行</span></div>
+      <div><span class="kw">INSERT INTO</span> `shop_prod`.`coupons` (`id`,`code`,`discount`,`expires_at`) <span class="kw">VALUES</span> (?,?,?,?);  <span style="color:#a8a8a1">-- 128 行</span></div>
+      <div style="color:#a8a8a1">-- DELETE 未勾选，不生成</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;background:#f0f0ed;border-top:1px solid #d9d9d3;flex-shrink:0">
+    <span style="font-size:11px;color:#8a8a84">164 行待同步 · 分批提交，每 2000 行一次</span>
+    <div style="flex-grow:1"></div>
+    <span class="btn">取消</span>
+    <span class="btn">仅导出脚本</span>
+    <span class="btn" style="background:#a0402a;border-color:#a0402a;color:#fff;font-weight:500">应用到 shop_prod</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

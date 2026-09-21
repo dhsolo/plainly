@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.plainly</groupId>
+    <artifactId>plainly-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>plainly-driver-api</artifactId>
+  <name>Plainly :: 驱动契约</name>
+  <description>
+    数据通路的类型契约。本模块刻意不依赖任何第三方库，也不依赖 JDBC 之外的任何东西，
+    以保证「精确数值只以文本承载」这条规则没有任何绕过的余地。
+  </description>
+</project>

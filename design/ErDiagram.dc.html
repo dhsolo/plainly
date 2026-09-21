@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.btn{display:flex;align-items:center;gap:5px;height:24px;padding:0 9px;border:1px solid #d6d6d0;border-radius:3px;background:#fff;font-size:12px;color:#3a3a36}
+.ent{position:absolute;width:212px;background:#fff;border:1px solid #c4c4bd;border-radius:5px;box-shadow:0 2px 10px rgba(28,28,26,.08);overflow:hidden}
+.ent-h{display:flex;align-items:center;gap:6px;height:27px;padding:0 9px;background:#0f6f70}
+.ent-n{font-family:"JetBrains Mono",Consolas,monospace;font-size:11.5px;font-weight:600;color:#fff}
+.er{display:flex;align-items:center;gap:6px;height:21px;padding:0 9px;font-size:11px;border-bottom:1px solid #f4f4f0}
+.er:last-child{border-bottom:none}
+.en{font-family:"JetBrains Mono",Consolas,monospace;font-size:10.5px}
+.et{font-family:"JetBrains Mono",Consolas,monospace;font-size:9.5px;color:#a8a8a1;margin-left:auto}
+.exact{color:#8a5a00}
+.tree{display:flex;align-items:center;gap:6px;height:24px;padding:0 8px 0 12px;font-size:12px;color:#3a3a36}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:1440px;height:900px;background:#f5f5f3;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:34px;padding:0 12px;background:#e9e9e5;border-bottom:1px solid #d4d4ce;flex-shrink:0">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4" style="margin-right:7px"><rect x="1.8" y="2.4" width="5" height="4" rx=".8"></rect><rect x="9.2" y="9.6" width="5" height="4" rx=".8"></rect><path d="M4.3 6.4v3.6a1.6 1.6 0 0 0 1.6 1.6h3.3"></path></svg>
+    <span style="font-size:12.5px;font-weight:600">数据模型</span>
+    <span style="font-size:11.5px;color:#8a8a84;margin-left:8px">shop_prod · 由现有库逆向生成</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;background:#f5f5f3;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <span class="btn" style="border-color:#0f6f70;background:#eaf4f4;color:#0f6f70"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><path d="M13 8a5 5 0 1 1-1.6-3.7"></path><path d="M13.2 2.6v2.8h-2.8"></path></svg>重新逆向</span>
+    <span class="btn">自动布局</span>
+    <span class="btn">导出 PNG</span>
+    <div style="width:1px;height:18px;background:#d9d9d3"></div>
+    <span class="btn">生成建库脚本</span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:11px;color:#8a8a84">关系线由外键约束推导；无外键的库会给出按命名推测的虚线</span>
+    <div style="width:1px;height:18px;background:#d9d9d3"></div>
+    <span class="btn">100%</span>
+  </div>
+
+  <div style="display:flex;flex-grow:1;min-height:0">
+
+    <!-- 侧栏 -->
+    <div style="display:flex;flex-direction:column;width:230px;background:#f0f0ed;border-right:1px solid #d9d9d3;flex-shrink:0">
+      <div style="padding:8px 12px;font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em;border-bottom:1px solid #e2e2dd">模型对象</div>
+      <div class="tree" style="background:#dceaea;color:#0f6f70;font-weight:600"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>customers</div>
+      <div class="tree"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#7a8a9a" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>orders</div>
+      <div class="tree"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#7a8a9a" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>order_items</div>
+      <div class="tree"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#7a8a9a" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>payments</div>
+      <div class="tree"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#7a8a9a" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>coupons</div>
+      <div class="tree" style="color:#a8a8a1;font-size:11px">…另外 19 张未加入模型</div>
+
+      <div style="padding:8px 12px;font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em;border-top:1px solid #e2e2dd;border-bottom:1px solid #e2e2dd;margin-top:8px">关系</div>
+      <div style="display:flex;flex-direction:column;gap:1px;padding:6px 12px">
+        <span class="mono" style="font-size:10.5px;color:#5f5f5a">customers 1—N orders</span>
+        <span class="mono" style="font-size:10.5px;color:#5f5f5a">orders 1—N order_items</span>
+        <span class="mono" style="font-size:10.5px;color:#5f5f5a">orders 1—N payments</span>
+        <span class="mono" style="font-size:10.5px;color:#8a8a84">coupons 1—N orders</span>
+      </div>
+
+      <div style="flex-grow:1"></div>
+      <div style="padding:10px 12px;border-top:1px solid #e2e2dd">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+          <span style="width:14px;height:2px;background:#0f6f70;border-radius:1px"></span>
+          <span style="font-size:10px;color:#5f5f5a">外键约束</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="width:14px;height:0;border-top:2px dashed #a8a8a1"></span>
+          <span style="font-size:10px;color:#5f5f5a">按命名推测</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 画布 -->
+    <div style="position:relative;flex-grow:1;background:#fbfbf9;overflow:hidden">
+
+      <svg width="1210" height="828" style="position:absolute;left:0;top:0">
+        <!-- customers 1—N orders -->
+        <path d="M272 96 L 340 96 L 340 96 L 400 96" stroke="#0f6f70" stroke-width="1.6" fill="none"></path>
+        <path d="M280 90 L 280 102" stroke="#0f6f70" stroke-width="1.6"></path>
+        <path d="M392 90 L 400 96 L 392 102 M384 96 L 400 96" stroke="#0f6f70" stroke-width="1.6" fill="none"></path>
+
+        <!-- orders 1—N order_items -->
+        <path d="M612 130 C 680 130, 700 300, 760 300" stroke="#0f6f70" stroke-width="1.6" fill="none"></path>
+        <path d="M620 124 L 620 138" stroke="#0f6f70" stroke-width="1.6"></path>
+        <path d="M752 294 L 760 300 L 752 306 M744 300 L 760 300" stroke="#0f6f70" stroke-width="1.6" fill="none"></path>
+
+        <!-- orders 1—N payments -->
+        <path d="M506 232 L 506 300 L 506 380" stroke="#0f6f70" stroke-width="1.6" fill="none"></path>
+        <path d="M499 240 L 513 240" stroke="#0f6f70" stroke-width="1.6"></path>
+        <path d="M500 372 L 506 380 L 512 372 M506 364 L 506 380" stroke="#0f6f70" stroke-width="1.6" fill="none"></path>
+
+        <!-- coupons 1—N orders（无外键，按命名推测） -->
+        <path d="M166 380 L 166 200 L 166 200" stroke="#a8a8a1" stroke-width="1.6" stroke-dasharray="5 4" fill="none"></path>
+        <path d="M166 200 C 166 160, 300 190, 400 170" stroke="#a8a8a1" stroke-width="1.6" stroke-dasharray="5 4" fill="none"></path>
+        <path d="M392 164 L 400 170 L 392 176 M384 170 L 400 170" stroke="#a8a8a1" stroke-width="1.6" fill="none"></path>
+
+        <text x="300" y="88" font-family="IBM Plex Sans, sans-serif" font-size="10" fill="#0f6f70">user_id</text>
+        <text x="672" y="205" font-family="IBM Plex Sans, sans-serif" font-size="10" fill="#0f6f70">order_id</text>
+        <text x="514" y="312" font-family="IBM Plex Sans, sans-serif" font-size="10" fill="#0f6f70">order_id</text>
+        <text x="238" y="186" font-family="IBM Plex Sans, sans-serif" font-size="10" fill="#a8a8a1">coupon_id · 无约束</text>
+      </svg>
+
+      <!-- customers -->
+      <div class="ent" style="left:60px;top:56px">
+        <div class="ent-h"><span class="ent-n">customers</span><span style="margin-left:auto;font-size:9.5px;color:#bfe0e0">90,277</span></div>
+        <div class="er"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#c99a24" stroke-width="1.7"><path d="M10.2 2.6a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4"></path><path d="M8 7.8 2.6 13.2v1.2h2v-1.6h1.6v-1.6h1.4z"></path></svg><span class="en" style="font-weight:600">id</span><span class="et exact">BIGINT</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">name</span><span class="et">VARCHAR(64)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">region_code</span><span class="et">VARCHAR(8)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">registered_at</span><span class="et">DATETIME(6)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">retention_tier</span><span class="et">TINYINT</span></div>
+      </div>
+
+      <!-- orders -->
+      <div class="ent" style="left:400px;top:56px">
+        <div class="ent-h"><span class="ent-n">orders</span><span style="margin-left:auto;font-size:9.5px;color:#bfe0e0">1,284,003</span></div>
+        <div class="er"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#c99a24" stroke-width="1.7"><path d="M10.2 2.6a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4"></path><path d="M8 7.8 2.6 13.2v1.2h2v-1.6h1.6v-1.6h1.4z"></path></svg><span class="en" style="font-weight:600">id</span><span class="et exact">BIGINT</span></div>
+        <div class="er"><span style="width:9px;color:#7a8a9a;font-size:9px;text-align:center">◇</span><span class="en">user_id</span><span class="et">INT</span></div>
+        <div class="er" style="background:#fefbf4"><span style="width:9px"></span><span class="en" style="font-weight:600">amount</span><span class="et exact">DECIMAL(38,10)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">currency</span><span class="et">CHAR(3)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">status</span><span class="et">VARCHAR(16)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">created_at</span><span class="et">DATETIME(6)</span></div>
+        <div class="er"><span style="width:9px;color:#a8a8a1;font-size:9px;text-align:center">◇</span><span class="en" style="color:#8a8a84">coupon_id</span><span class="et">BIGINT</span></div>
+      </div>
+
+      <!-- order_items -->
+      <div class="ent" style="left:760px;top:260px">
+        <div class="ent-h"><span class="ent-n">order_items</span><span style="margin-left:auto;font-size:9.5px;color:#bfe0e0">4,102,887</span></div>
+        <div class="er"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#c99a24" stroke-width="1.7"><path d="M10.2 2.6a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4"></path><path d="M8 7.8 2.6 13.2v1.2h2v-1.6h1.6v-1.6h1.4z"></path></svg><span class="en" style="font-weight:600">id</span><span class="et exact">BIGINT</span></div>
+        <div class="er"><span style="width:9px;color:#7a8a9a;font-size:9px;text-align:center">◇</span><span class="en">order_id</span><span class="et exact">BIGINT</span></div>
+        <div class="er" style="background:#fefbf4"><span style="width:9px"></span><span class="en" style="font-weight:600">unit_price</span><span class="et exact">DECIMAL(38,10)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">quantity</span><span class="et">INT</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">discount_rate</span><span class="et exact">DECIMAL(8,6)</span></div>
+      </div>
+
+      <!-- payments -->
+      <div class="ent" style="left:400px;top:396px">
+        <div class="ent-h"><span class="ent-n">payments</span><span style="margin-left:auto;font-size:9.5px;color:#bfe0e0">1,190,441</span></div>
+        <div class="er"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#c99a24" stroke-width="1.7"><path d="M10.2 2.6a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4"></path><path d="M8 7.8 2.6 13.2v1.2h2v-1.6h1.6v-1.6h1.4z"></path></svg><span class="en" style="font-weight:600">id</span><span class="et exact">BIGINT</span></div>
+        <div class="er"><span style="width:9px;color:#7a8a9a;font-size:9px;text-align:center">◇</span><span class="en">order_id</span><span class="et exact">BIGINT</span></div>
+        <div class="er" style="background:#fefbf4"><span style="width:9px"></span><span class="en" style="font-weight:600">paid_amount</span><span class="et exact">DECIMAL(38,10)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">channel</span><span class="et">VARCHAR(24)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">paid_at</span><span class="et">DATETIME(6)</span></div>
+      </div>
+
+      <!-- coupons -->
+      <div class="ent" style="left:60px;top:396px">
+        <div class="ent-h" style="background:#7a8a9a"><span class="ent-n">coupons</span><span style="margin-left:auto;font-size:9.5px;color:#dde4ea">3,201</span></div>
+        <div class="er"><svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="#c99a24" stroke-width="1.7"><path d="M10.2 2.6a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4"></path><path d="M8 7.8 2.6 13.2v1.2h2v-1.6h1.6v-1.6h1.4z"></path></svg><span class="en" style="font-weight:600">id</span><span class="et exact">BIGINT</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">code</span><span class="et">VARCHAR(32)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">discount</span><span class="et exact">DECIMAL(8,6)</span></div>
+        <div class="er"><span style="width:9px"></span><span class="en">expires_at</span><span class="et">DATETIME(6)</span></div>
+      </div>
+
+      <!-- 说明 -->
+      <div style="position:absolute;left:760px;top:56px;width:376px;padding:11px 13px;background:#fff;border:1px solid #e0e0da;border-radius:5px">
+        <div style="font-size:11.5px;font-weight:600;margin-bottom:6px">读这张图的两条线索</div>
+        <div style="display:flex;align-items:flex-start;gap:7px;margin-bottom:5px">
+          <span style="width:9px;height:9px;background:#fefbf4;border:1px solid #ecdcb4;border-radius:2px;flex-shrink:0;margin-top:3px"></span>
+          <span style="font-size:10.5px;color:#5f5f5a;line-height:1.55">淡黄底 + 橙色类型是<b>精确数值列</b>。金额链路上的每一列都在这里，一眼能看出精度约定是否一致——
+          <span class="mono">discount_rate</span> 与 <span class="mono">discount</span> 都是 DECIMAL(8,6)，对得上。</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:7px">
+          <span style="width:14px;height:0;border-top:2px dashed #a8a8a1;flex-shrink:0;margin-top:7px"></span>
+          <span style="font-size:10.5px;color:#5f5f5a;line-height:1.55">虚线是<b>按命名推测</b>的关系，库里没有对应外键约束。
+          常见于历史库，值得确认是有意为之还是漏建。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:14px;height:26px;padding:0 12px;background:#e9e9e5;border-top:1px solid #d9d9d3;flex-shrink:0;font-size:10.5px;color:#5f5f5a">
+    <span>5 个实体 · 4 条关系（其中 1 条为推测）</span>
+    <div style="flex-grow:1"></div>
+    <span>逆向于 2026-09-01 15:20 · 库结构已变更时会提示重新逆向</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

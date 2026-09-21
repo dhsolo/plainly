@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.hd{display:flex;align-items:center;height:27px;padding:0 9px;font-size:10.5px;font-weight:600;color:#5f5f5a;border-right:1px solid #deded8;background:#eeeeeb;letter-spacing:.03em;flex-shrink:0;text-transform:uppercase}
+.cl{display:flex;align-items:center;height:26px;padding:0 9px;font-size:12px;border-right:1px solid #f0f0ec;border-bottom:1px solid #f2f2ee;overflow:hidden;white-space:nowrap;flex-shrink:0;background:#fff}
+.row{display:flex}
+.sel .cl{background:#e4f0f0}
+.ck{width:13px;height:13px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ck-off{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:2px;background:#fff;flex-shrink:0}
+.tag{font-size:10px;padding:1px 6px;border-radius:3px;white-space:nowrap}
+.t-add{color:#3a6b3a;background:#eef5ee;border:1px solid #d4e4d4}
+.t-mod{color:#8a5a00;background:#fdf6e6;border:1px solid #ecdcb4}
+.t-del{color:#a0402a;background:#fdf5f3;border:1px solid #e8cfc7}
+.t-same{color:#a8a8a1;background:#f7f7f4;border:1px solid #ececE6}
+.sel-box{display:flex;align-items:center;justify-content:space-between;height:28px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px}
+.btn{display:flex;align-items:center;justify-content:center;height:28px;padding:0 14px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;color:#3a3a36}
+.kw{color:#8a3d6b;font-weight:500}
+.dtype{color:#2a5d8f}
+.diff-l{background:#fdf5f3}
+.diff-r{background:#f7fbf7}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:1180px;height:820px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:38px;padding:0 14px;background:#f0f0ed;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4" style="margin-right:8px"><path d="M2 5.4h9M8.2 2.6 11 5.4 8.2 8.2"></path><path d="M14 10.6H5M7.8 7.8 5 10.6l2.8 2.8"></path></svg>
+    <span style="font-size:13px;font-weight:600">结构同步</span>
+    <span style="font-size:12px;color:#8a8a84;margin-left:8px">比对两个库的结构，生成把目标改成源的 DDL</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <!-- 源 → 目标 -->
+  <div style="display:flex;align-items:center;gap:12px;height:60px;padding:0 14px;border-bottom:1px solid #e4e4e0;flex-shrink:0">
+    <div style="display:flex;flex-direction:column;gap:3px;flex-grow:1">
+      <span style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em">源 · 以它为准</span>
+      <div style="display:flex;gap:6px">
+        <span class="sel-box" style="flex-grow:1">
+          <span style="display:flex;align-items:center;gap:7px">
+            <span style="width:7px;height:7px;border-radius:4px;background:#5d8f5d"></span>shop-test
+          </span>
+          <span style="color:#a8a8a1;font-size:9px">&#9660;</span>
+        </span>
+        <span class="sel-box" style="width:150px">shop_test <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+      </div>
+    </div>
+
+    <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.6" style="margin-top:16px"><path d="M2.5 8h11M9.6 4.1 13.5 8l-3.9 3.9"></path></svg>
+
+    <div style="display:flex;flex-direction:column;gap:3px;flex-grow:1">
+      <span style="font-size:10.5px;font-weight:600;color:#a0402a;letter-spacing:.03em">目标 · 将被修改</span>
+      <div style="display:flex;gap:6px">
+        <span class="sel-box" style="flex-grow:1;border-color:#e0b4a8;background:#fdf7f5">
+          <span style="display:flex;align-items:center;gap:7px">
+            <span style="width:7px;height:7px;border-radius:4px;background:#a0402a"></span>shop-prod
+            <span class="tag t-del">生产</span>
+          </span>
+          <span style="color:#a8a8a1;font-size:9px">&#9660;</span>
+        </span>
+        <span class="sel-box" style="width:150px">shop_prod <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+      </div>
+    </div>
+
+    <span class="btn" style="background:#0f6f70;border-color:#0f6f70;color:#fff;font-weight:500;margin-top:16px">重新比对</span>
+  </div>
+
+  <div style="display:flex;flex-grow:1;min-height:0">
+
+    <!-- 差异对象列表 -->
+    <div style="display:flex;flex-direction:column;width:420px;border-right:1px solid #d9d9d3;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 12px;border-bottom:1px solid #e4e4e0">
+        <span style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em">差异对象</span>
+        <span style="font-size:11px;color:#8a8a84">7 项，已选 5</span>
+        <div style="flex-grow:1"></div>
+        <span style="font-size:11px;color:#0f6f70">仅显示差异</span>
+      </div>
+
+      <div class="row" style="border-bottom:1px solid #cdcdc6">
+        <div class="hd" style="width:34px"></div>
+        <div class="hd" style="flex-grow:1">对象</div>
+        <div class="hd" style="width:96px">差异</div>
+      </div>
+
+      <div class="row"><div class="cl" style="width:34px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="flex-grow:1"><span class="mono" style="font-size:11.5px">orders</span></div><div class="cl" style="width:96px"><span class="tag t-mod">3 处字段</span></div></div>
+
+      <div class="row sel"><div class="cl" style="width:34px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="flex-grow:1;font-weight:600"><span class="mono" style="font-size:11.5px">order_items</span></div><div class="cl" style="width:96px"><span class="tag t-mod">2 处字段</span></div></div>
+
+      <div class="row"><div class="cl" style="width:34px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="flex-grow:1"><span class="mono" style="font-size:11.5px">coupons</span></div><div class="cl" style="width:96px"><span class="tag t-add">仅源有</span></div></div>
+
+      <div class="row"><div class="cl" style="width:34px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="flex-grow:1"><span class="mono" style="font-size:11.5px">idx_orders_status</span> <span style="color:#a8a8a1;font-size:10.5px">索引</span></div><div class="cl" style="width:96px"><span class="tag t-add">仅源有</span></div></div>
+
+      <div class="row"><div class="cl" style="width:34px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl" style="flex-grow:1"><span class="mono" style="font-size:11.5px">v_daily_gmv</span> <span style="color:#a8a8a1;font-size:10.5px">视图</span></div><div class="cl" style="width:96px"><span class="tag t-mod">定义不同</span></div></div>
+
+      <div class="row"><div class="cl" style="width:34px;justify-content:center"><span class="ck-off"></span></div><div class="cl" style="flex-grow:1;color:#8a8a84"><span class="mono" style="font-size:11.5px">tmp_migration_0731</span></div><div class="cl" style="width:96px"><span class="tag t-del">仅目标有</span></div></div>
+
+      <div class="row"><div class="cl" style="width:34px;justify-content:center"><span class="ck-off"></span></div><div class="cl" style="flex-grow:1;color:#8a8a84"><span class="mono" style="font-size:11.5px">audit_log_2025</span></div><div class="cl" style="width:96px"><span class="tag t-del">仅目标有</span></div></div>
+
+      <div style="flex-grow:1;background:#fbfbf9"></div>
+
+      <div style="display:flex;align-items:center;gap:9px;padding:8px 12px;background:#fdf7f5;border-top:1px solid #f0e0da">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#a8781a" stroke-width="1.5" style="flex-shrink:0"><path d="M8 2.2 14.4 13.4H1.6z"></path><path d="M8 6.4v3.2M8 11.4v.6"></path></svg>
+        <span style="font-size:10.5px;color:#8a5a00;line-height:1.5">「仅目标有」默认不勾选：删表是不可逆的，需要你逐个确认</span>
+      </div>
+    </div>
+
+    <!-- 字段级对比 -->
+    <div style="display:flex;flex-direction:column;flex-grow:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 12px;border-bottom:1px solid #e4e4e0">
+        <span style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em">字段对比</span>
+        <span class="mono" style="font-size:11.5px;color:#0f6f70">order_items</span>
+      </div>
+
+      <div class="row" style="border-bottom:1px solid #cdcdc6">
+        <div class="hd" style="width:150px">字段</div>
+        <div class="hd" style="flex-grow:1">源 · shop_test</div>
+        <div class="hd" style="flex-grow:1">目标 · shop_prod</div>
+      </div>
+
+      <div class="row"><div class="cl" style="width:150px"><span class="mono" style="font-size:11.5px">id</span></div><div class="cl mono" style="flex-grow:1;font-size:11.5px;color:#8a8a84">BIGINT NOT NULL</div><div class="cl mono" style="flex-grow:1;font-size:11.5px;color:#8a8a84">BIGINT NOT NULL</div></div>
+
+      <div class="row"><div class="cl" style="width:150px"><span class="mono" style="font-size:11.5px">order_id</span></div><div class="cl mono" style="flex-grow:1;font-size:11.5px;color:#8a8a84">BIGINT NOT NULL</div><div class="cl mono" style="flex-grow:1;font-size:11.5px;color:#8a8a84">BIGINT NOT NULL</div></div>
+
+      <div class="row"><div class="cl" style="width:150px;font-weight:600"><span class="mono" style="font-size:11.5px">unit_price</span></div><div class="cl mono diff-r" style="flex-grow:1;font-size:11.5px;font-weight:500">DECIMAL(38,10) NOT NULL</div><div class="cl mono diff-l" style="flex-grow:1;font-size:11.5px">DECIMAL(10,2) NOT NULL</div></div>
+
+      <div class="row"><div class="cl" style="width:150px"><span class="mono" style="font-size:11.5px">quantity</span></div><div class="cl mono" style="flex-grow:1;font-size:11.5px;color:#8a8a84">INT NOT NULL</div><div class="cl mono" style="flex-grow:1;font-size:11.5px;color:#8a8a84">INT NOT NULL</div></div>
+
+      <div class="row"><div class="cl" style="width:150px;font-weight:600"><span class="mono" style="font-size:11.5px">discount_rate</span></div><div class="cl mono diff-r" style="flex-grow:1;font-size:11.5px;font-weight:500">DECIMAL(8,6) NULL</div><div class="cl" style="flex-grow:1;background:#fdf5f3;color:#a0402a;font-size:11px;font-style:italic">目标不存在</div></div>
+
+      <div class="row"><div class="cl" style="width:150px"><span class="mono" style="font-size:11.5px">created_at</span></div><div class="cl mono" style="flex-grow:1;font-size:11.5px;color:#8a8a84">DATETIME(6) NOT NULL</div><div class="cl mono" style="flex-grow:1;font-size:11.5px;color:#8a8a84">DATETIME(6) NOT NULL</div></div>
+
+      <div style="flex-grow:1;background:#fbfbf9"></div>
+
+      <div style="display:flex;align-items:flex-start;gap:9px;padding:9px 12px;background:#fdf6e6;border-top:1px solid #f2e7cd">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#a8781a" stroke-width="1.5" style="flex-shrink:0;margin-top:1px"><path d="M8 2.2 14.4 13.4H1.6z"></path><path d="M8 6.4v3.2M8 11.4v.6"></path></svg>
+        <span style="font-size:11px;color:#8a5a00;line-height:1.6">
+          <b>unit_price 是收窄改动。</b>目标库是 DECIMAL(38,10)、源库是 DECIMAL(10,2)——按「以源为准」会把小数位从 10 位砍到 2 位，<b>已有数据会被四舍五入且不可恢复</b>。
+          方向反了的可能性很大，请确认哪一侧才是对的。
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SQL 预览 -->
+  <div style="display:flex;flex-direction:column;height:186px;background:#fafaf8;border-top:1px solid #d9d9d3;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:12px;height:30px;padding:0 12px;border-bottom:1px solid #eeeeea">
+      <span style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em">同步脚本</span>
+      <span style="font-size:11px;color:#8a8a84">按依赖顺序排列，将在一个事务内执行</span>
+      <div style="flex-grow:1"></div>
+      <span class="btn" style="height:22px;font-size:11.5px;padding:0 9px">复制 SQL</span>
+      <span class="btn" style="height:22px;font-size:11.5px;padding:0 9px">存为迁移脚本</span>
+    </div>
+    <div class="mono" style="padding:10px 14px;font-size:12px;line-height:19px;overflow:hidden">
+      <div><span class="kw">CREATE TABLE</span> `shop_prod`.`coupons` (…);</div>
+      <div><span class="kw">ALTER TABLE</span> `shop_prod`.`order_items`</div>
+      <div>&nbsp;&nbsp;<span class="kw">ADD COLUMN</span> `discount_rate` <span class="dtype">DECIMAL</span>(8,6) <span class="kw">NULL</span> <span class="kw">AFTER</span> `quantity`;</div>
+      <div style="background:#fdf5f3;margin:2px -14px;padding:0 14px"><span class="kw">ALTER TABLE</span> `shop_prod`.`order_items` <span class="kw">MODIFY COLUMN</span> `unit_price` <span class="dtype">DECIMAL</span>(10,2) <span class="kw">NOT NULL</span>;  <span style="color:#a0402a">-- 收窄，会丢精度</span></div>
+      <div><span class="kw">CREATE INDEX</span> `idx_orders_status` <span class="kw">ON</span> `shop_prod`.`orders` (`status`);</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;background:#f0f0ed;border-top:1px solid #d9d9d3;flex-shrink:0">
+    <span style="font-size:11px;color:#8a8a84">5 项待同步 · 其中 1 项会丢数据</span>
+    <div style="flex-grow:1"></div>
+    <span class="btn">取消</span>
+    <span class="btn">仅导出脚本</span>
+    <span class="btn" style="background:#a0402a;border-color:#a0402a;color:#fff;font-weight:500">应用到 shop_prod</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

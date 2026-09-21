@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.sl{font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em;text-transform:uppercase}
+.btn{display:flex;align-items:center;justify-content:center;height:28px;padding:0 15px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;color:#3a3a36}
+.in{display:flex;align-items:center;height:28px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px}
+.sel-box{display:flex;align-items:center;justify-content:space-between;height:26px;padding:0 9px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12px}
+.ck{width:13px;height:13px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ck-off{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:2px;background:#fff;flex-shrink:0}
+.rd{width:13px;height:13px;border:4px solid #0f6f70;border-radius:50%;background:#fff;flex-shrink:0}
+.rd-off{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:50%;background:#fff;flex-shrink:0}
+.hd{display:flex;align-items:center;height:26px;padding:0 9px;font-size:10.5px;font-weight:600;color:#5f5f5a;border-right:1px solid #deded8;background:#eeeeeb;letter-spacing:.03em;flex-shrink:0}
+.cl{display:flex;align-items:center;height:25px;padding:0 9px;font-size:11.5px;border-right:1px solid #f0f0ec;border-bottom:1px solid #f2f2ee;overflow:hidden;white-space:nowrap;flex-shrink:0;background:#fff}
+.row{display:flex}
+.fmt{display:flex;flex-direction:column;gap:3px;padding:7px 10px;border:1px solid #d9d9d3;border-radius:4px;background:#fff}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:800px;height:800px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:38px;padding:0 14px;background:#f0f0ed;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.5" style="margin-right:8px"><path d="M8 10.4V2.8M5 5.8 8 2.8l3 3M3 12.6h10"></path></svg>
+    <span style="font-size:13px;font-weight:600">导入数据</span>
+    <span style="font-size:12px;color:#8a8a84;margin-left:8px">shop_prod.orders</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:15px;padding:16px 18px;flex-grow:1;min-height:0">
+
+    <!-- 文件 -->
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <span class="sl">源文件</span>
+      <div style="display:flex;gap:8px">
+        <span class="in mono" style="flex-grow:1;font-size:11.5px">D:\imports\orders_202608.csv</span>
+        <span class="btn">浏览</span>
+      </div>
+    </div>
+
+    <!-- 格式 -->
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <span class="sl">文件格式</span>
+      <div style="display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:8px">
+        <div class="fmt" style="border-color:#0f6f70;background:#f2f8f8;box-shadow:inset 0 0 0 1px #0f6f70">
+          <span style="font-size:12.5px;font-weight:600;color:#0f6f70">CSV</span>
+          <span style="font-size:10px;color:#5f7a7a">文本，无精度损失</span>
+        </div>
+        <div class="fmt">
+          <span style="font-size:12.5px;font-weight:500">Excel .xlsx</span>
+          <span style="font-size:10px;color:#8a8a84">数值单元格已是双精度</span>
+        </div>
+        <div class="fmt">
+          <span style="font-size:12.5px;font-weight:500">JSON</span>
+          <span style="font-size:10px;color:#8a8a84">裸数字按文本读取</span>
+        </div>
+        <div class="fmt">
+          <span style="font-size:12.5px;font-weight:500">SQL 脚本</span>
+          <span style="font-size:10px;color:#8a8a84">直接执行</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 解析选项 -->
+    <div style="display:flex;align-items:center;gap:18px">
+      <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>首行为表头</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12.5px">分隔符 <span class="sel-box" style="width:64px">逗号 <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span></span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12.5px">编码 <span class="sel-box" style="width:92px">UTF-8 <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span></span>
+      <div style="flex-grow:1"></div>
+      <span style="font-size:11px;color:#8a8a84">已解析 <span class="mono">48,213</span> 行</span>
+    </div>
+
+    <!-- 字段映射 -->
+    <div style="display:flex;flex-direction:column;gap:7px;flex-grow:1;min-height:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="sl">字段映射</span>
+        <span style="font-size:11px;color:#8a8a84">按名字自动匹配，可手工改</span>
+      </div>
+      <div style="display:flex;flex-direction:column;border:1px solid #e0e0da;border-radius:4px;overflow:hidden">
+        <div class="row" style="border-bottom:1px solid #cdcdc6">
+          <div class="hd" style="width:30px"></div>
+          <div class="hd" style="width:150px">文件列</div>
+          <div class="hd" style="width:196px">首行样例</div>
+          <div class="hd" style="width:150px">目标字段</div>
+          <div class="hd" style="flex-grow:1">目标类型 · 读入方式</div>
+        </div>
+
+        <div class="row"><div class="cl" style="width:30px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl mono" style="width:150px">id</div><div class="cl mono" style="width:196px;font-size:11px">9223372036854775807</div><div class="cl mono" style="width:150px">id</div><div class="cl mono" style="flex-grow:1;font-size:11px">BIGINT · BigDecimal</div></div>
+
+        <div class="row"><div class="cl" style="width:30px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl mono" style="width:150px">user_id</div><div class="cl mono" style="width:196px;font-size:11px">88102</div><div class="cl mono" style="width:150px">user_id</div><div class="cl mono" style="flex-grow:1;font-size:11px">INT · BigDecimal</div></div>
+
+        <div class="row"><div class="cl" style="width:30px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl mono" style="width:150px;font-weight:500;background:#fdf6e6">amount</div><div class="cl mono" style="width:196px;font-size:11px;background:#fdf6e6">12345678901234567890.1234567890</div><div class="cl mono" style="width:150px;background:#fdf6e6">amount</div><div class="cl mono" style="flex-grow:1;font-size:11px;background:#fdf6e6;font-weight:500">DECIMAL(38,10) · BigDecimal</div></div>
+
+        <div class="row"><div class="cl" style="width:30px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl mono" style="width:150px">currency</div><div class="cl mono" style="width:196px;font-size:11px">CNY</div><div class="cl mono" style="width:150px">currency</div><div class="cl mono" style="flex-grow:1;font-size:11px">CHAR(3) · String</div></div>
+
+        <div class="row"><div class="cl" style="width:30px;justify-content:center"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span></div><div class="cl mono" style="width:150px">created</div><div class="cl mono" style="width:196px;font-size:11px">2026-08-31 09:16:44</div><div class="cl mono" style="width:150px">created_at</div><div class="cl mono" style="flex-grow:1;font-size:11px">DATETIME(6) · String</div></div>
+
+        <div class="row"><div class="cl" style="width:30px;justify-content:center"><span class="ck-off"></span></div><div class="cl mono" style="width:150px;color:#8a8a84">internal_ref</div><div class="cl mono" style="width:196px;font-size:11px;color:#8a8a84">RF-88102-0031</div><div class="cl" style="width:150px;color:#a8a8a1;font-style:italic;font-size:11px">不导入</div><div class="cl" style="flex-grow:1;color:#a8a8a1;font-size:11px">目标表无对应字段</div></div>
+      </div>
+    </div>
+
+    <!-- 精度：类型推断 -->
+    <div style="display:flex;flex-direction:column;border:1px solid #ecdcb4;border-radius:5px;background:#fefbf4;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid #f2e7cd">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#a8781a" stroke-width="1.5"><path d="M8 2.2 14.4 13.4H1.6z"></path><path d="M8 6.4v3.2M8 11.4v.6"></path></svg>
+        <span style="font-size:12.5px;font-weight:600;color:#8a5a00">数值读入方式</span>
+        <span style="font-size:11px;color:#a8781a">文件里有 2 列超过 15 位有效数字</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;padding:10px 13px">
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <span class="rd" style="margin-top:2px"></span>
+          <span style="display:flex;flex-direction:column;gap:1px">
+            <span style="font-size:12.5px;font-weight:500">按文本读入，绑定为 BigDecimal<span style="color:#4d7a4d;font-weight:400;margin-left:7px">推荐</span></span>
+            <span style="font-size:10.5px;color:#8a8a84;line-height:1.5">与网格、导出走同一条路径。CSV 里是什么字符，进库就是什么值。</span>
+          </span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <span class="rd-off" style="margin-top:2px"></span>
+          <span style="display:flex;flex-direction:column;gap:1px">
+            <span style="font-size:12.5px;color:#5f5f5a">按 double 解析后再写入</span>
+            <span style="font-size:10.5px;color:#8a8a84;line-height:1.5">超过 15 位有效数字的值会在解析阶段就被截断，写进库的已经是错的。</span>
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 11px;background:#fff;border:1px solid #eee4cc;border-radius:4px;margin-top:2px">
+          <span style="font-size:10.5px;color:#a8a8a1;width:52px">文件中</span>
+          <span class="mono" style="font-size:11.5px">12345678901234567890.1234567890</span>
+          <div style="flex-grow:1"></div>
+          <span style="display:flex;align-items:center;gap:4px;font-size:10.5px;color:#4d7a4d">
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#4d7a4d" stroke-width="2.2"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg>入库后一致
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 冲突处理 -->
+    <div style="display:flex;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span class="sl">主键冲突时</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="rd"></span>跳过该行</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#5f5f5a"><span class="rd-off"></span>更新已有行</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#5f5f5a"><span class="rd-off"></span>中止导入</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span class="sl">出错时</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>把失败行写入 orders_202608.err.csv</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>批量提交，每 <span class="mono" style="font-size:11.5px">2000</span> 行一次</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 18px;background:#f7f7f4;border-top:1px solid #e4e4e0;flex-shrink:0">
+    <span style="font-size:11px;color:#8a8a84">将导入 <span class="mono">48,213</span> 行 · 5 个字段</span>
+    <div style="flex-grow:1"></div>
+    <span class="btn">取消</span>
+    <span class="btn">试运行</span>
+    <span class="btn" style="background:#0f6f70;border-color:#0f6f70;color:#fff;font-weight:500">开始导入</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,1680 @@
+/*
+ * Plainly 主题。
+ * 配色与尺寸对齐设计原型：暖中性灰底 + 单一青绿强调色，桌面级密度。
+ * 字体用 Windows 上必然存在的族，不依赖需要安装的字体。
+ */
+
+.root {
+    -fx-font-family: "Microsoft YaHei UI", "Segoe UI", "PingFang SC", sans-serif;
+    -fx-font-size: 12.5px;
+    -fx-background-color: #f5f5f3;
+
+    /* 调色板 */
+    -sx-bg:            #f5f5f3;
+    -sx-panel:         #ffffff;
+    -sx-sidebar:       #f0f0ed;
+    -sx-chrome:        #e9e9e5;
+    -sx-border:        #d9d9d3;
+    -sx-border-light:  #e4e4e0;
+    -sx-border-faint:  #f0f0ec;
+    -sx-text:          #1c1c1a;
+    -sx-text-2:        #5f5f5a;
+    -sx-text-3:        #8a8a84;
+    -sx-text-faint:    #a8a8a1;
+    -sx-accent:        #0f6f70;
+    -sx-accent-dark:   #0a4f50;
+    -sx-accent-bg:     #eaf4f4;
+    -sx-accent-sel:    #e4f0f0;
+    -sx-accent-tree:   #dceaea;
+    -sx-amber:         #8a5a00;
+    -sx-amber-bg:      #fdf6e6;
+    -sx-amber-border:  #ecdcb4;
+    -sx-green:         #4d7a4d;
+    -sx-green-bg:      #f1f6f1;
+    -sx-red:           #a0402a;
+    -sx-red-bg:        #fdf5f3;
+
+    /*
+     * 下面这些原来是散在各条规则里的字面量。收成令牌不是为了整洁，
+     * 是为了换肤：只要还有一个硬编码的颜色留在规则里，暗色主题下那一处
+     * 就会突兀地亮着，而且没人说得清它是从哪儿来的。
+     */
+    -sx-hover:         #fafaf8;
+    -sx-border-hover:  #c4c4bd;
+    -sx-border-strong: #d6d6d0;
+    -sx-text-strong:   #3a3a36;
+    -sx-panel-2:       #f7f7f4;
+    -sx-panel-3:       #fbfbf9;
+    -sx-chrome-2:      #f2f2ef;
+    -sx-chrome-hover:  #e6e6e2;
+    -sx-grid-line:     #f2f2ee;
+    -sx-scroll-thumb:  #cdcdc6;
+    -sx-red-border:    #d8b5aa;
+    -sx-green-border:  #cfe0cf;
+    /* SQL 着色。它们是前景色，暗底上必须提亮，否则整段代码糊成一片 */
+    -sx-sql-keyword:   #8a3d6b;
+    -sx-sql-function:  #2a5d8f;
+}
+
+/*
+ * 暗色主题。
+ *
+ * <h2>为什么只重定义令牌，一条规则都不重写</h2>
+ * 上面每一条规则都已经写成 -sx-xxx，所以整套皮肤换的就是这一块。
+ * 一旦开始为暗色单独写规则，两套规则就会各自演化，某天改了亮色的间距、
+ * 暗色下还是老样子——而那种偏差没人会去逐条对。
+ *
+ * <h2>为什么这一块必须排在 .root 后面</h2>
+ * .root 和 .theme-dark 都是单个类选择器，特指度相同，谁在后面谁生效。
+ * 把它挪到文件前面去，暗色主题会安静地失效——界面照常显示，只是永远是亮的。
+ *
+ * <h2>不是把亮色直接取反</h2>
+ * 取反出来的界面会刺眼：纯黑底配纯白字对比过强，长时间看很累。这里用的是
+ * 和亮色同一族的暖中性色，只是把明度关系翻过来，强调色则要<b>提亮</b>——
+ * 深青在暗底上几乎看不见。
+ */
+.root.theme-dark {
+    -fx-background-color: #1b1b19;
+
+    -sx-bg:            #1b1b19;
+    -sx-panel:         #232320;
+    -sx-sidebar:       #1f1f1d;
+    -sx-chrome:        #262623;
+    -sx-border:        #3a3a36;
+    -sx-border-light:  #33332f;
+    -sx-border-faint:  #2b2b28;
+    -sx-text:          #e8e8e2;
+    -sx-text-2:        #b5b5ad;
+    -sx-text-3:        #8f8f88;
+    -sx-text-faint:    #6f6f68;
+    -sx-accent:        #3fa9aa;
+    -sx-accent-dark:   #6fd0d1;
+    -sx-accent-bg:     #14312f;
+    -sx-accent-sel:    #17383a;
+    -sx-accent-tree:   #1b4143;
+    -sx-amber:         #d4a541;
+    -sx-amber-bg:      #332b16;
+    -sx-amber-border:  #5a4a20;
+    -sx-green:         #7fb37f;
+    -sx-green-bg:      #1d2a1d;
+    -sx-red:           #e07a5f;
+    -sx-red-bg:        #33201b;
+
+    -sx-hover:         #2b2b28;
+    -sx-border-hover:  #4a4a44;
+    -sx-border-strong: #3f3f3a;
+    -sx-text-strong:   #ddddd6;
+    -sx-panel-2:       #262623;
+    -sx-panel-3:       #242421;
+    -sx-chrome-2:      #2a2a27;
+    -sx-chrome-hover:  #303029;
+    -sx-grid-line:     #2e2e2a;
+    -sx-scroll-thumb:  #45453f;
+    -sx-red-border:    #6b3a2c;
+    -sx-green-border:  #35492f;
+    -sx-sql-keyword:   #d089ae;
+    -sx-sql-function:  #7aa9d8;
+
+    /*
+     * modena 自己的那套基色，也得跟着翻。
+     *
+     * 上面那些 -sx-* 只作用于本项目<b>写过样式的</b>控件。没写过的那些——复选框、
+     * 单选钮、菜单、滚动条、工具提示、以及任何一个没挂样式类的 Label——
+     * 用的是 JavaFX 内置皮肤 modena 的变量，那套值是为亮底调的。
+     *
+     * 不改这一段的表现很具体：整个界面都黑了，唯独复选框旁边那行字还是深灰的，
+     * 在深底上几乎看不见。而它不会报任何错，只能靠眼睛发现。
+     */
+    -fx-base: #232320;
+    -fx-background: #1b1b19;
+    -fx-control-inner-background: #232320;
+    -fx-control-inner-background-alt: #262623;
+    -fx-text-base-color: #e8e8e2;
+    -fx-text-background-color: #e8e8e2;
+    -fx-text-fill: #e8e8e2;
+    -fx-accent: #3fa9aa;
+    -fx-default-button: #17383a;
+    -fx-focus-color: #3fa9aa;
+    -fx-faint-focus-color: #3fa9aa33;
+    -fx-selection-bar: #17383a;
+    -fx-selection-bar-non-focused: #2b2b28;
+    -fx-mark-color: #e8e8e2;
+    -fx-mark-highlight-color: transparent;
+    -fx-shadow-highlight-color: transparent;
+    -fx-outer-border: #3a3a36;
+    -fx-inner-border: #2b2b28;
+    -fx-body-color: #232320;
+    -fx-box-border: #3a3a36;
+}
+
+/*
+ * 主按钮和危险按钮悬停时的文字是写死的 white。
+ *
+ * 在亮色下这是对的（底色是深青 / 深红），暗色下这两个底色被提亮了，
+ * 白字压在提亮后的青色上对比不够。改成暗底色的深色文字。
+ */
+.root.theme-dark .tool-button.primary,
+.root.theme-dark .tool-button.danger:hover,
+.root.theme-dark .tool-button.primary:hover {
+    -fx-text-fill: #14211f;
+}
+
+.mono {
+    -fx-font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+
+/* ---------------------------------------------------------------- 顶栏 */
+
+.app-toolbar {
+    -fx-background-color: -sx-bg;
+    -fx-border-color: transparent transparent -sx-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 7 12 7 12;
+}
+
+/* ---------------------------------------------------------------- 按钮 */
+
+.tool-button {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-strong;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-text-fill: -sx-text-strong;
+    -fx-padding: 4 9 4 9;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+
+.tool-button:hover {
+    -fx-background-color: -sx-hover;
+    -fx-border-color: -sx-border-hover;
+}
+
+.tool-button:disabled {
+    -fx-opacity: 0.45;
+}
+
+/*
+ * 开关型的工具按钮（目前是「自动换行」）。
+ * 开着的时候必须一眼看得出来——否则用户只能靠正文有没有换行去反推。
+ */
+.tool-button:selected {
+    -fx-background-color: -sx-accent-tree;
+    -fx-border-color: -sx-border-hover;
+}
+
+.tool-button:selected:hover {
+    -fx-background-color: -sx-accent-tree;
+    -fx-border-color: -sx-border-strong;
+}
+
+/*
+ * 下拉式工具按钮。
+ *
+ * MenuButton 的文字挂在一个子 .label 上，自带内边距；箭头是另一个子节点，
+ * 默认外观和这套界面完全不搭。不写这一段，工具条上就会出现两种长相的按钮。
+ */
+.tool-button.menu-button {
+    -fx-padding: 4 7 4 9;
+}
+
+.tool-button.menu-button > .label {
+    -fx-padding: 0;
+    -fx-text-fill: -sx-text-strong;
+}
+
+.tool-button.menu-button:disabled > .label {
+    -fx-text-fill: -sx-text-faint;
+}
+
+.tool-button.menu-button > .arrow-button {
+    -fx-padding: 0 0 0 7;
+}
+
+.tool-button.menu-button > .arrow-button > .arrow {
+    -fx-background-color: -sx-text-3;
+    -fx-shape: "M 0 0 L 7 0 L 3.5 4.5 z";
+    -fx-padding: 2.25 3.5 2.25 3.5;
+    -fx-scale-shape: false;
+}
+
+.tool-button.menu-button:hover > .arrow-button > .arrow {
+    -fx-background-color: -sx-accent;
+}
+
+/* 打开时保持按下的样子，否则弹出菜单后按钮看着像没被点中 */
+.tool-button.menu-button:showing {
+    -fx-background-color: -sx-accent-sel;
+    -fx-border-color: -sx-accent;
+}
+
+.tool-button.accent {
+    -fx-background-color: -sx-accent-bg;
+    -fx-border-color: -sx-accent;
+    -fx-text-fill: -sx-accent;
+    -fx-font-weight: bold;
+}
+
+.tool-button.accent:hover {
+    -fx-background-color: derive(-sx-accent-bg, -5%);
+}
+
+.tool-button.primary {
+    -fx-background-color: -sx-accent;
+    -fx-border-color: -sx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.tool-button.primary:hover {
+    -fx-background-color: -sx-accent-dark;
+}
+
+/* 会丢数据的操作用红色主按钮，让手指在点下去之前多想一秒 */
+/*
+ * 破坏性操作：描边红，不是实心红。
+ *
+ * 实心填充在这套界面里的语义是「主操作」（见 .primary）。把删除做成实心，
+ * 它就成了整页最抢眼的东西——而删除从来不是任何一页的主操作。
+ * 要的是「一眼认得出、不会误点」，不是「请点我」。
+ * 悬停时才填实，那时候用户已经把指针放上去了，加重提示正合适。
+ */
+.tool-button.danger {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-red-border;
+    -fx-text-fill: -sx-red;
+}
+
+.tool-button.danger:hover {
+    -fx-background-color: -sx-red;
+    -fx-border-color: -sx-red;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/*
+ * 会话列表里本工具自己那一行。
+ *
+ * 掐掉自己的表现是「点了结束会话，界面立刻断线」——看着像软件崩了。
+ * 所以先在视觉上把它认出来，按钮那边再拦一道。
+ */
+.row-self {
+    -fx-background-color: -sx-accent-bg;
+}
+
+.row-self .table-cell {
+    -fx-text-fill: -sx-accent-dark;
+    -fx-font-weight: bold;
+}
+
+/*
+ * SQL 执行失败时盖住结果区的那块面板。
+ *
+ * 原来失败信息只在结果区最底下一行细字里。用户按下 F5 之后眼睛盯的是结果区中间，
+ * 那儿一片空白——看着就像「查询返回 0 行」。于是一条报错的 SQL 被当成查不到数据，
+ * 用户接着去改条件，而真正的原因在他视线之外。
+ *
+ * 报错本来就没有结果可显示，那块地方空着也是空着，用来放最该被看见的东西正合适。
+ */
+.sql-error-panel {
+    -fx-background-color: -sx-red-bg;
+    -fx-border-color: -sx-red-border;
+    -fx-border-width: 0 0 0 3;
+    -fx-padding: 14 16 14 16;
+}
+
+.sql-error-title {
+    -fx-text-fill: -sx-red;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* 正文用文本域，让人能选中复制——数据库报错又长又关键 */
+.sql-error-detail {
+    -fx-background-color: transparent;
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 12px;
+    -fx-text-fill: -sx-text;
+}
+
+.sql-error-detail .content {
+    -fx-background-color: transparent;
+}
+
+/* ---------------------------------------------------------------- 事务控制 */
+
+/*
+ * 手动事务开关。
+ *
+ * 用 ToggleButton 而不是 CheckBox：它旁边就是「提交 / 回滚」两个按钮，
+ * 三个长得是一套东西才读得出「这一组管的是同一件事」。
+ */
+.tool-toggle {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-strong;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-text-fill: -sx-text-strong;
+    -fx-padding: 4 9 4 9;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+}
+
+.tool-toggle:hover {
+    -fx-background-color: -sx-hover;
+    -fx-border-color: -sx-border-hover;
+}
+
+.tool-toggle:selected {
+    -fx-background-color: -sx-accent-bg;
+    -fx-border-color: -sx-accent;
+    -fx-text-fill: -sx-accent-dark;
+    -fx-font-weight: bold;
+}
+
+/*
+ * 有未提交改动时，整条控件变色。
+ *
+ * 这是界面上最该被看见的状态之一：用户以为已经存进去了、其实还攥在事务里，
+ * 而那批改动会在断开连接的一刻全部消失。一个小小的文字提示不够，
+ * 得让这一整块从工具条里跳出来。
+ */
+.tx-bar-pending {
+    -fx-background-color: -sx-amber-bg;
+    -fx-border-color: -sx-amber-border;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 2 6 2 6;
+}
+
+.tx-pending {
+    -fx-text-fill: -sx-amber;
+    -fx-font-weight: bold;
+    -fx-font-size: 11.5px;
+}
+
+/* ---------------------------------------------------------------- 侧栏 */
+
+/*
+ * 侧栏顶部的搜索。
+ *
+ * 它找的是表 / 视图 / 字段——全是左树里的东西，所以就贴着树放。
+ * 输入之后树整块换成结果列表：侧栏本来就窄，劈成两半的话两边都不够用。
+ */
+.sidebar-search {
+    -fx-padding: 8 8 8 10;
+    -fx-background-color: -sx-sidebar;
+    -fx-border-color: transparent transparent -sx-border-light transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.sidebar-search-field {
+    -fx-font-size: 12px;
+    -fx-padding: 4 8 4 8;
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-strong;
+}
+
+.search-head {
+    -fx-padding: 5 10 5 10;
+    -fx-background-color: -sx-chrome-2;
+    -fx-border-color: transparent transparent -sx-border-light transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.search-foot {
+    -fx-padding: 4 10 4 10;
+    -fx-background-color: -sx-hover;
+    -fx-border-color: -sx-border-faint transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.search-foot .label { -fx-font-size: 10px; -fx-text-fill: -sx-text-faint; }
+
+.search-results {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: transparent;
+}
+
+.search-results .list-cell {
+    -fx-background-color: -sx-panel;
+    -fx-padding: 5 10 5 10;
+}
+
+/* 同上：搜索结果里的选中项也不能只改背景（见 .completion-list 那条的说明） */
+.search-results:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.search-results:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover,
+.search-results .list-cell:filled:selected,
+.search-results .list-cell:filled:hover {
+    -fx-background-color: -sx-accent-sel;
+    -fx-text-fill: -sx-text;
+}
+
+/* 空白行不该有悬停效果——那里什么都没有 */
+.search-results .list-cell:empty,
+.search-results .list-cell:empty:hover {
+    -fx-background-color: -sx-panel;
+    -fx-cursor: default;
+}
+
+.search-name {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -sx-text;
+}
+
+.search-path {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -sx-text-3;
+}
+
+.search-type {
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 10px;
+    -fx-text-fill: -sx-text-faint;
+}
+
+/* 凭注释命中的，注释要显出来，而且要看得出它是注释 */
+.search-comment {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -sx-accent;
+    -fx-background-color: -sx-accent-bg;
+    -fx-background-radius: 3;
+    -fx-padding: 0 5 0 5;
+}
+
+
+.sidebar {
+    -fx-background-color: -sx-sidebar;
+    -fx-border-color: transparent -sx-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.section-label {
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sx-text-2;
+    -fx-padding: 7 11 7 11;
+}
+
+.tree-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.tree-view .tree-cell {
+    /* 默认缩进 18px，四层下来光缩进就吃掉 72px——而侧栏一共才 246px。
+       收到 13px，省下的宽度全给表名 */
+    -fx-indent: 13px;
+    -fx-background-color: transparent;
+    -fx-text-fill: -sx-text-strong;
+    -fx-padding: 0 6 0 2;
+    -fx-cell-size: 25px;
+    -fx-font-size: 12.5px;
+}
+
+.tree-view .tree-cell:hover {
+    -fx-background-color: -sx-chrome-hover;
+}
+
+/*
+ * 列表末尾那一片空白行。
+ *
+ * TreeView 会把可视区铺满空的 tree-cell，它们照样接收 :hover。
+ * 于是鼠标扫过连接列表下方的空白，一格一格地亮——那里什么都没有，
+ * 亮起来只会让人以为下面还藏着东西。空行不是行，不该有任何反馈。
+ */
+.tree-view .tree-cell:empty,
+.tree-view .tree-cell:empty:hover,
+.tree-view .tree-cell:empty:selected,
+.tree-view .tree-cell:empty:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: default;
+}
+
+.tree-view .tree-cell:selected {
+    -fx-background-color: -sx-accent-tree;
+    -fx-text-fill: -sx-accent;
+    -fx-font-weight: bold;
+}
+
+/*
+ * 选中行的文字染成强调色。
+ *
+ * 这条只能落在 Label 内部那个 .text 上——种类标记里的字母是裸 Text 节点，不带样式类，
+ * 正是为了躲开这里：强调色 -sx-accent 和 MySQL 块的 #00758f 几乎同色，
+ * 真染上去，那个 M 就糊进块里没了（见 DbMarks）。
+ */
+.tree-view .tree-cell:selected .text {
+    -fx-fill: -sx-accent;
+}
+
+.tree-badge {
+    -fx-font-size: 10px;
+    -fx-text-fill: -sx-green;
+    -fx-background-color: -sx-green-bg;
+    -fx-background-radius: 8;
+    -fx-padding: 1 6 1 6;
+}
+
+/*
+ * 库和分组这两层给一点底色。
+ *
+ * 一个库下面一百多张表，行与行之间毫无落差，眼睛只能靠数缩进找自己在哪一段。
+ * 给上面两层加浅底色之后，这棵树才有段落感——底色很淡，是为了当分隔用，
+ * 不是为了抢眼：真正要看的是表名。
+ */
+.tree-view .tree-cell.tree-row-schema {
+    -fx-background-color: -sx-panel-2;
+}
+
+.tree-view .tree-cell.tree-row-group {
+    -fx-background-color: -sx-panel-2;
+}
+
+/* 选中和悬停仍然要压过上面这两条，否则点了没反应似的 */
+.tree-view .tree-cell.tree-row-schema:selected,
+.tree-view .tree-cell.tree-row-group:selected {
+    -fx-background-color: -sx-accent-tree;
+}
+
+.tree-view .tree-cell.tree-row-schema:hover,
+.tree-view .tree-cell.tree-row-group:hover {
+    -fx-background-color: -sx-chrome-hover;
+}
+
+/* 库名比表名略重一点：它是这一段的标题 */
+.tree-schema {
+    -fx-font-weight: bold;
+}
+
+/* 分组行（表 / 视图 / 键空间）：它是分隔用的标签，不是内容，所以比内容轻 */
+.tree-group {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sx-text-faint;
+}
+
+/* 表注释：跟在表名后面的补充说明，不能抢表名的视线 */
+.tree-note {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -sx-text-faint;
+}
+
+.tree-count {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -sx-text-faint;
+}
+
+/* ---------------------------------------------------------------- 标签页 */
+
+.tab-pane > .tab-header-area {
+    -fx-padding: 0;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -sx-sidebar;
+    -fx-border-color: transparent transparent -sx-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 6 12 6 12;
+    -fx-background-radius: 4 4 0 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border -sx-border transparent -sx-border;
+    -fx-border-width: 1 1 0 1;
+    -fx-border-radius: 4 4 0 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab .tab-label {
+    -fx-text-fill: -sx-text-2;
+    -fx-font-size: 12.5px;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: -sx-text;
+    -fx-font-weight: bold;
+}
+
+.tab-pane > .tab-content-area {
+    -fx-background-color: -sx-panel;
+}
+
+.tab-pane:sub .tab-header-background {
+    -fx-background-color: -sx-sidebar;
+}
+
+/* ---------------------------------------------------------------- 数据网格 */
+
+.data-grid {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: transparent;
+    -fx-table-cell-border-color: -sx-border-faint;
+}
+
+/* 只读提示条：说清楚为什么不能改，而不是让双击悄无声息 */
+.readonly-bar {
+    -fx-background-color: -sx-amber-bg;
+    -fx-border-color: transparent transparent -sx-amber-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 10 6 10;
+    -fx-alignment: center-left;
+}
+
+.readonly-text {
+    -fx-text-fill: -sx-amber;
+    -fx-font-size: 11.5px;
+}
+
+.data-grid .column-header-background {
+    -fx-background-color: -sx-chrome-2;
+}
+
+.data-grid .column-header,
+.data-grid .filler {
+    -fx-background-color: -sx-chrome-2;
+    -fx-border-color: transparent -sx-border-light -sx-scroll-thumb transparent;
+    -fx-border-width: 0 1 1 0;
+    /* 两行表头：列名一行、类型一行 */
+    -fx-size: 40px;
+}
+
+.data-grid .column-header .label {
+    -fx-text-fill: -sx-text-2;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+    -fx-padding: 0 8 0 8;
+}
+
+/* 列名占整行，类型退到下面一行，谁也不挤谁 */
+.data-grid .column-header .grid-head {
+    -fx-padding: 3 8 3 8;
+}
+
+.data-grid .column-header .grid-head-name {
+    -fx-text-fill: -sx-text;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+    -fx-padding: 0;
+}
+
+.data-grid .column-header .grid-head-type {
+    -fx-text-fill: -sx-text-3;
+    -fx-font-size: 9.5px;
+    -fx-font-weight: normal;
+    -fx-padding: 0;
+}
+
+.data-grid .table-row-cell {
+    -fx-cell-size: 26px;
+    -fx-background-color: -sx-panel;
+    -fx-border-color: transparent transparent -sx-grid-line transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/*
+ * 数据网格：行高固定住。
+ *
+ * 上面那条 -fx-cell-size 只是「首选」高度——内容比它高的时候，行照样会跟着长。
+ * 编辑框一出现就是这种情况：那一行长 0.4px，下面每一行跟着往下挪一个物理像素。
+ * 固定之后谁也撑不高它。
+ *
+ * 只作用于真正的数据网格：.data-grid 这个类还挂在十来个对话框的表格上，
+ * 那些表格的行高该由各自的内容说了算。
+ */
+.data-grid-pane .data-grid {
+    -fx-fixed-cell-size: 26px;
+}
+
+.data-grid .table-row-cell:odd {
+    -fx-background-color: -sx-panel;
+}
+
+.data-grid .table-row-cell:hover {
+    -fx-background-color: -sx-hover;
+}
+
+.data-grid .table-row-cell:selected {
+    -fx-background-color: -sx-accent-sel;
+}
+
+.data-grid .table-cell {
+    -fx-border-color: transparent -sx-border-faint transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 0 8 0 8;
+    -fx-text-fill: -sx-text;
+    -fx-font-size: 12px;
+    -fx-alignment: center-left;
+}
+
+.data-grid .table-row-cell:selected .table-cell {
+    -fx-text-fill: -sx-text;
+}
+
+/*
+ * 编辑中的输入框：尺寸和位置都要和原来那个格子一致。
+ *
+ * 两件事在这里解决。一是<b>不能撑高行</b>——默认的 text-field 带着自己的内边距和
+ * 边框插入量，比格子高两三像素，一进编辑这一行就被撑高，下面所有行跟着往下挪，
+ * 看着像「双击一格，别的行全变样了」。二是<b>边框不能占地方</b>：用 -fx-border-*
+ * 画框会把内容往里挤，于是文字又跳一次；改用两层背景，外层那 1px 就是框，
+ * 画在自己身上，不吃掉任何尺寸。
+ */
+.data-grid .table-cell .text-field {
+    /* 内边距由 ValueCell 在进入编辑时设成格子原本的值，这里不能再写死 */
+    -fx-background-color: -sx-accent, -sx-panel;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-font-size: 12px;
+    -fx-text-fill: -sx-text;
+}
+
+/*
+ * 表格里那个可编辑下拉（结构设计器的「数据类型」列）。
+ *
+ * 默认的 ComboBox 自带内边距、边框和圆角，比格子高好几像素——一进编辑，
+ * 这一行被撑高，下面所有行跟着往下挪，看着就像「点了一下类型，整张表都动了」。
+ * 这里把它压成和格子一样的方形，尺寸由 TypeCell 在进入编辑时绑上去。
+ */
+.data-grid .table-cell .combo-box {
+    -fx-background-color: -sx-accent, -sx-panel;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-font-size: 12px;
+}
+
+.data-grid .table-cell .combo-box > .list-cell {
+    -fx-padding: 0 0 0 0;
+    -fx-background-color: transparent;
+    -fx-text-fill: -sx-text;
+    -fx-font-size: 12px;
+}
+
+.data-grid .table-cell .combo-box .text-field {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-font-size: 12px;
+    -fx-text-fill: -sx-text;
+}
+
+/* 箭头收窄一点，别把本来就不宽的类型列挤没了 */
+.data-grid .table-cell .combo-box > .arrow-button {
+    -fx-padding: 0 4 0 2;
+}
+
+/*
+ * 触发器那棵分组树。
+ *
+ * 上面 .data-grid 那套规则匹配的是 table-row-cell / table-cell，树表用的是
+ * tree-table-row-cell / tree-table-cell，一条也套不上——不补这一段，
+ * 它会退回 JavaFX 默认皮肤，和旁边的表格明显不是一套东西。
+ */
+.trigger-tree {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border;
+    -fx-border-width: 1;
+}
+
+.trigger-tree .tree-table-row-cell {
+    -fx-cell-size: 26px;
+    -fx-background-color: -sx-panel;
+    -fx-border-color: transparent transparent -sx-grid-line transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.trigger-tree .tree-table-row-cell:selected {
+    -fx-background-color: -sx-accent-sel;
+}
+
+.trigger-tree .tree-table-cell {
+    -fx-border-color: transparent -sx-border-faint transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 0 8 0 8;
+    -fx-text-fill: -sx-text;
+    -fx-font-size: 12px;
+    -fx-alignment: center-left;
+}
+
+/* 分类行加粗：一眼看出哪些是分类、哪些是触发器本身 */
+.trigger-tree .tree-table-row-cell:filled > .tree-table-cell > .tree-disclosure-node {
+    -fx-padding: 4 4 4 6;
+}
+
+/* 表头上的排序箭头：小、弱，够看见就行——它是状态，不是操作按钮 */
+.grid-head-sort {
+    -fx-font-size: 9px;
+    -fx-text-fill: -sx-accent;
+}
+
+/* 数值列：右对齐 + 等宽，长数字才对得齐，也一眼看得出位数 */
+.cell-numeric {
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 11.5px;
+    -fx-alignment: center-right;
+}
+
+.cell-null {
+    -fx-text-fill: -sx-text-faint;
+    -fx-font-style: italic;
+    -fx-font-size: 11px;
+}
+
+/* 已修改未保存 */
+.cell-dirty {
+    -fx-background-color: -sx-amber-bg;
+    -fx-border-color: -sx-amber-border -sx-border-faint transparent -sx-amber;
+    -fx-border-width: 0 1 0 2;
+}
+
+/*
+ * 新增行里还没填过的格子。
+ *
+ * 显示的是「(默认)」而不是「(NULL)」，样式也要跟 .cell-null 分开：
+ * 两者在 INSERT 里是完全不同的两件事，长得一样就白区分了。
+ */
+.cell-unset {
+    -fx-text-fill: -sx-accent;
+    -fx-font-style: italic;
+    -fx-font-size: 11px;
+    -fx-opacity: 0.75;
+}
+
+/*
+ * 整行标记：新增行和待删除行。
+ *
+ * 底色给在 .table-row-cell 上而不是 .table-cell 上——一行里没有内容的那段
+ * （最后一列右边的空白）也要跟着变色，否则半行有色半行没有，看着像渲染坏了。
+ * :selected 时不盖掉标记色，只压暗一点：用户正选着一行按删除，
+ * 选中态把标记色顶掉的话，他根本看不出这一行已经标上了。
+ */
+.data-grid .table-row-cell.row-new,
+.data-grid .table-row-cell.row-new:odd {
+    -fx-background-color: -sx-green-bg;
+}
+
+.data-grid .table-row-cell.row-new .table-cell {
+    -fx-border-color: transparent -sx-border-faint transparent -sx-green;
+    -fx-border-width: 0 1 0 0;
+}
+
+.data-grid .table-row-cell.row-deleted,
+.data-grid .table-row-cell.row-deleted:odd {
+    -fx-background-color: -sx-red-bg;
+}
+
+/*
+ * 待删除的行：红底 + 压暗的红字。
+ *
+ * 刻意不用删除线：-fx-strikethrough 是 Text 的属性，Labeled（表格单元格就是它）
+ * 不认，写上去只会在控制台刷一行 CSS 警告，界面上什么也不会发生。
+ */
+.data-grid .table-row-cell.row-deleted .table-cell {
+    -fx-text-fill: -sx-red;
+    -fx-opacity: 0.7;
+}
+
+.data-grid .table-row-cell.row-new:selected,
+.data-grid .table-row-cell.row-deleted:selected {
+    -fx-background-color: derive(-sx-accent-sel, -3%);
+}
+
+/*
+ * 行首那一列：点一下选中整行。
+ *
+ * 底色跟表头一个色（-sx-chrome-2），一眼看出「这一列不是数据」。
+ * 右边那条线画得比普通列分隔线重一点，让数据区从哪儿开始一目了然。
+ *
+ * 内边距清零、内容居中：这一列只放一个记号，按数据列那套左对齐加 8px 缩进，
+ * 26 像素宽里就只剩个边。
+ */
+.data-grid .table-cell.grid-gutter {
+    -fx-background-color: -sx-chrome-2;
+    -fx-border-color: transparent -sx-border-light transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 0;
+    -fx-alignment: center;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sx-text-3;
+}
+
+/*
+ * 选中态刻意<b>不</b>在这里写。
+ *
+ * 试过写一条 .grid-gutter:selected，没有生效：modena 自带的那条选中规则
+ * （.table-view:focused > .virtual-flow > … > .table-cell:selected）选择器长得多，
+ * 优先级压过这里。而它的效果正是想要的——行首那一格跟着整行一起变色，
+ * 所以不用再跟它较劲，写了反而是一条永远不生效的死规则。
+ */
+
+/* 新增行、待删除行的记号：颜色和整行底色是一套 */
+.data-grid .table-cell.gutter-new {
+    -fx-text-fill: -sx-green;
+}
+
+.data-grid .table-cell.gutter-deleted {
+    -fx-text-fill: -sx-red;
+    -fx-opacity: 1;
+}
+
+/*
+ * 表页的视图条。
+ *
+ * 做成贴着内容的标签页，而不是一排按钮——它和下面工具条上的按钮是两种东西：
+ * 这里是「在看哪一页」，那里是「做点什么」。长得一样就会被读成同一层，
+ * 而那正是之前让人误解的地方。
+ */
+.view-strip {
+    -fx-background-color: -sx-sidebar;
+    -fx-border-color: transparent transparent -sx-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 8 0 8;
+}
+
+.view-tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 7 15 6 15;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -sx-text-2;
+    -fx-cursor: hand;
+}
+
+.view-tab:hover {
+    -fx-text-fill: -sx-text;
+}
+
+/* 选中的那个：底部一条重色，且底色变成内容区的白——像真的连着下面 */
+.view-tab:selected {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: transparent transparent -sx-accent transparent;
+    -fx-text-fill: -sx-accent;
+    -fx-font-weight: bold;
+}
+
+.view-tab:selected:hover {
+    -fx-text-fill: -sx-accent;
+}
+
+/* 操作条最前面那句「触发器 ·」，说明这一行的按钮是对谁的 */
+.action-scope {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sx-text-2;
+    -fx-padding: 0 2 0 0;
+}
+
+.grid-toolbar {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: transparent transparent -sx-border-light transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 12 6 12;
+}
+
+.pager {
+    -fx-background-color: -sx-panel-2;
+    -fx-border-color: -sx-border-light transparent -sx-border-light transparent;
+    -fx-border-width: 1 0 1 0;
+    -fx-padding: 5 12 5 12;
+}
+
+.pager .label {
+    -fx-font-size: 11px;
+    -fx-text-fill: -sx-text-2;
+}
+
+/* ---------------------------------------------------------------- 单元格面板 */
+
+.inspector {
+    -fx-background-color: -sx-panel-3;
+    -fx-padding: 0;
+}
+
+.inspector-head {
+    -fx-padding: 5 12 5 12;
+    -fx-border-color: transparent transparent -sx-border-faint transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.inspector-body {
+    -fx-padding: 8 12 8 12;
+}
+
+.inspector-value {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 4 9 4 9;
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 12.5px;
+}
+
+.badge-exact {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -sx-amber;
+    -fx-background-color: -sx-amber-bg;
+    -fx-border-color: -sx-amber-border;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 1 7 1 7;
+}
+
+.hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: -sx-text-3;
+}
+
+.hint-strong {
+    -fx-font-size: 11px;
+    -fx-text-fill: -sx-text-2;
+}
+
+/* ---------------------------------------------------------------- 状态栏 */
+
+.status-bar {
+    -fx-background-color: -sx-chrome;
+    -fx-border-color: -sx-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 4 12 4 12;
+}
+
+.status-bar .label {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -sx-text-2;
+}
+
+.status-ok { -fx-text-fill: -sx-green; }
+.status-warn { -fx-text-fill: -sx-amber; }
+.status-error { -fx-text-fill: -sx-red; }
+
+/* ---------------------------------------------------------------- SQL 编辑器 */
+
+.code-area {
+    -fx-background-color: -sx-panel;
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 12.5px;
+}
+
+/*
+ * 行号的字体在代码里定（见 LineNumbers）：RichTextFX 自己给 Label 调过 setFont，
+ * 而 JavaFX 里代码设过的属性样式表覆盖不了——在这里写 -fx-font-family 是死的。
+ * 字号改动要同时改 LineNumbers.SIZE。
+ */
+.code-area .lineno {
+    -fx-background-color: -sx-hover;
+    -fx-text-fill: -sx-text-faint;
+    -fx-padding: 0 10 0 6;
+}
+
+.code-area .caret { -fx-stroke: -sx-text; }
+.code-area .selection { -fx-fill: -sx-accent-tree; }
+
+/* 语法着色 */
+.sql-keyword  { -fx-fill: -sx-sql-keyword; -fx-font-weight: bold; }
+.sql-function { -fx-fill: -sx-sql-function; }
+.sql-string   { -fx-fill: -sx-green; }
+.sql-number   { -fx-fill: -sx-amber; }
+.sql-comment  { -fx-fill: -sx-text-faint; -fx-font-style: italic; }
+.sql-operator { -fx-fill: -sx-text-2; }
+
+/* 补全弹窗 */
+.completion-popup {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-hover;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-effect: dropshadow(gaussian, rgba(28,28,26,0.18), 16, 0, 0, 5);
+}
+
+.completion-head {
+    -fx-background-color: -sx-chrome-2;
+    -fx-border-color: transparent transparent -sx-border-light transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 4 9 4 9;
+}
+
+.completion-head .label { -fx-font-size: 10.5px; -fx-text-fill: -sx-text-2; }
+
+.completion-foot {
+    -fx-background-color: -sx-hover;
+    -fx-border-color: -sx-border-faint transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 3 9 3 9;
+}
+
+.completion-foot .label { -fx-font-size: 10px; -fx-text-fill: -sx-text-faint; }
+
+.completion-list {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: transparent;
+}
+
+.completion-list .list-cell {
+    -fx-background-color: -sx-panel;
+    -fx-padding: 3 9 3 9;
+    -fx-cell-size: 25px;
+}
+
+/*
+ * 选中项：背景和文字要一起接管。
+ *
+ * 只改背景是不够的——modena 在列表<b>获得焦点</b>时会把选中行的文字刷成白色，
+ * 它假设背景是自己那条深蓝选中条。我们把背景换成了浅色，白字就糊在上面看不见了，
+ * 而那恰恰是「刚点完一项」的那一刻：焦点还在列表上，用户正要看自己选中了什么。
+ *
+ * 选择器写到 modena 那个层级（:focused > .virtual-flow > ...），
+ * 不然优先级压不过它——背景压得过是因为那条走的是变量，文字这条是直接写死的。
+ *
+ * 那几行长得超出了本文件的宽度习惯，但<b>不能折行</b>：JavaFX 的 CSS 解析器
+ * 不接受选择器在组合符处换行（报 Expected LBRACE），而一个语法错会让
+ * 整份样式表作废——界面会整个退回默认皮肤，比这几行长要糟得多。
+ */
+.completion-list:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.completion-list:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover,
+.completion-list .list-cell:filled:selected,
+.completion-list .list-cell:filled:hover {
+    -fx-background-color: -sx-accent-sel;
+    -fx-text-fill: -sx-text;
+}
+
+/*
+ * 索引 / 外键里那个「已选的列」列表。
+ *
+ * 借用 .completion-list 的单元格样式，但要有自己的边框和底色——
+ * 补全弹窗浮在编辑器上，本来就有一圈弹窗阴影划界；而这个列表嵌在表单里，
+ * 不画边框就只是几行浮着的文字，看不出是一个列表。
+ */
+.column-list {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.completion-name {
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 12px;
+    -fx-text-fill: -sx-text;
+}
+
+.completion-type {
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -sx-text-3;
+}
+
+/* 键值库的键名搜索栏：贴在网格顶上，跟工具条区分开 */
+.key-search-bar {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: transparent transparent -sx-border-light transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 7 12 7 12;
+}
+
+/* ---------------------------------------------------------------- 对话框 */
+
+.dialog-pane {
+    -fx-background-color: -sx-panel;
+}
+
+.dialog-head {
+    -fx-background-color: -sx-sidebar;
+    -fx-border-color: transparent transparent -sx-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 14 10 14;
+}
+
+.dialog-title { -fx-font-size: 13px; -fx-font-weight: bold; }
+
+/* 对话框里的滚动表单：滚动区自带的白底和边框会在表单外面画出一圈框，去掉 */
+.dialog-scroll,
+.dialog-scroll > .viewport {
+    -fx-background-color: -sx-panel;
+}
+
+.dialog-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}
+
+.dialog-foot {
+    -fx-background-color: -sx-panel-2;
+    -fx-border-color: -sx-border-light transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 20 12 20;
+}
+
+.form-label {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -sx-text-2;
+}
+
+.text-field, .password-field, .combo-box, .text-area {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-strong;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-font-size: 12.5px;
+    -fx-padding: 5 9 5 9;
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused {
+    -fx-border-color: -sx-accent;
+}
+
+.combo-box .list-cell { -fx-padding: 4 9 4 9; -fx-text-fill: -sx-text; }
+
+.check-box { -fx-font-size: 12px; }
+.check-box .box {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-hover;
+    -fx-border-radius: 2;
+    -fx-background-radius: 2;
+}
+.check-box:selected .box {
+    -fx-background-color: -sx-accent;
+    -fx-border-color: -sx-accent;
+}
+.check-box:selected .mark { -fx-background-color: white; }
+
+/*
+ * 单选钮必须是<b>圆</b>的。
+ *
+ * <p>原来这里只改了颜色，没给圆角：modena 的 .radio 圆在背景上，边框半径是另一条属性，
+ * 于是画出来是一个方框套着圆底——和旁边的复选框长得一模一样。
+ * 而这两者的语义完全不同（一个互斥、一个不互斥），形状是用户唯一的判据。
+ */
+.radio-button { -fx-font-size: 12.5px; }
+.radio-button .radio { -fx-border-color: -sx-border-hover; -fx-background-color: -sx-panel; -fx-border-radius: 1em; -fx-background-radius: 1em; }
+.radio-button:selected .radio { -fx-border-color: -sx-accent; -fx-border-width: 4; }
+.radio-button:selected .dot { -fx-background-color: transparent; }
+
+/* 结果提示条 */
+.banner-ok {
+    -fx-background-color: -sx-green-bg;
+    -fx-border-color: -sx-green-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 12 8 12;
+}
+.banner-ok .label { -fx-text-fill: -sx-green; -fx-font-size: 12px; }
+
+.banner-error {
+    -fx-background-color: -sx-red-bg;
+    -fx-border-color: -sx-red-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8 12 8 12;
+}
+.banner-error .label { -fx-text-fill: -sx-red; -fx-font-size: 12px; }
+
+/* 长数值处理面板 —— 导出对话框里的主角 */
+.precision-panel {
+    -fx-background-color: -sx-amber-bg;
+    -fx-border-color: -sx-amber-border;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.precision-head {
+    -fx-border-color: transparent transparent -sx-amber-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 9 13 9 13;
+}
+
+.precision-body { -fx-padding: 11 13 11 13; }
+
+.precision-title { -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: -sx-amber; }
+
+.compare-box {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-amber-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.compare-row { -fx-padding: 5 11 5 11; }
+.compare-row-good { -fx-background-color: -sx-green-bg; }
+.compare-row-bad  { -fx-background-color: -sx-red-bg; }
+.compare-tag { -fx-font-size: 10.5px; -fx-min-width: 44px; }
+.compare-value { -fx-font-family: "Cascadia Mono", Consolas, monospace; -fx-font-size: 11.5px; }
+.compare-lost { -fx-text-fill: -sx-red; -fx-strikethrough: true; }
+
+/* ---------------------------------------------------------------- 右键菜单 */
+
+/*
+ * ContextMenu 是独立的 PopupControl，样式从属主 Scene 的样式表继承。
+ * 不写这一段就会退回 JavaFX 的系统默认外观，和整套界面完全脱节。
+ */
+.context-menu {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-hover;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-padding: 4 0 4 0;
+    -fx-effect: dropshadow(gaussian, rgba(28, 28, 26, 0.16), 14, 0, 0, 4);
+}
+
+.context-menu .menu-item {
+    -fx-padding: 5 16 5 11;
+    -fx-background-color: transparent;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: -sx-text-strong;
+    -fx-font-size: 12.5px;
+}
+
+/* 菜单项的悬停态在 JavaFX 里是 :focused，不是 :hover */
+.context-menu .menu-item:focused {
+    -fx-background-color: -sx-accent-sel;
+}
+
+.context-menu .menu-item:focused .label {
+    -fx-text-fill: -sx-accent;
+}
+
+.context-menu .menu-item:disabled .label {
+    -fx-text-fill: -sx-text-faint;
+}
+
+/* 图标与文字的间距，跟工具条按钮保持一致 */
+.context-menu .menu-item .graphic-container {
+    -fx-padding: 0 7 0 0;
+}
+
+.context-menu .separator {
+    -fx-padding: 3 0 3 0;
+}
+
+.context-menu .separator .line {
+    -fx-border-color: -sx-border-faint transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* 不可逆的操作单独标红，跟主按钮的 danger 用同一个语言 */
+.context-menu .menu-item.menu-danger .label {
+    -fx-text-fill: -sx-red;
+}
+
+.context-menu .menu-item.menu-danger:focused {
+    -fx-background-color: -sx-red-bg;
+}
+
+.context-menu .menu-item.menu-danger:focused .label {
+    -fx-text-fill: -sx-red;
+}
+
+/* ---------------------------------------------------------------- 提示弹窗 */
+
+/*
+ * Alert 用的是独立的 DialogPane，样式表要在 UiUtils.dress() 里单独挂上去，
+ * 不然这一整段都不会生效。
+ */
+.plainly-alert {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-hover;
+    -fx-padding: 0;
+}
+
+/* 头部是我们自己的节点（见 UiUtils.dress）：图标和标题都在这一行里 */
+.plainly-alert .alert-head {
+    -fx-background-color: -sx-sidebar;
+    -fx-border-color: transparent transparent -sx-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 14 18 14 18;
+    -fx-alignment: center-left;
+}
+
+.plainly-alert .alert-title {
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sx-text;
+    -fx-wrap-text: true;
+}
+
+.plainly-alert > .content {
+    -fx-padding: 16 18 10 18;
+}
+
+.plainly-alert > .content.label {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: -sx-text-strong;
+    -fx-wrap-text: true;
+}
+
+/* 报错正文：等宽 + 可选中，方便整段复制去搜 */
+.plainly-alert .alert-detail {
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 11.5px;
+    -fx-border-color: -sx-border-light;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+
+.plainly-alert .alert-detail .content {
+    -fx-background-color: -sx-panel-3;
+}
+
+.plainly-alert > .button-bar {
+    -fx-background-color: -sx-panel-2;
+    -fx-border-color: -sx-border-light transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 18 12 18;
+}
+
+.plainly-alert .button {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-strong;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-text-fill: -sx-text-strong;
+    -fx-font-size: 12.5px;
+    -fx-padding: 5 18 5 18;
+    -fx-cursor: hand;
+}
+
+.plainly-alert .button:hover {
+    -fx-background-color: -sx-hover;
+    -fx-border-color: -sx-border-hover;
+}
+
+/* 只有主按钮是青绿的。默认按钮是「取消」——那是为了让手滑的回车什么都不做，
+   不是让它变成最显眼的那个；强调要跟着含义走，不跟着焦点走 */
+.plainly-alert .button.alert-primary {
+    -fx-background-color: -sx-accent;
+    -fx-border-color: -sx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.plainly-alert .button.alert-primary:hover {
+    -fx-background-color: -sx-accent-dark;
+}
+
+.split-pane { -fx-background-color: -sx-border-light; -fx-padding: 0; }
+.split-pane > .split-pane-divider {
+    -fx-background-color: -sx-border-light;
+    -fx-padding: 0 1 0 1;
+}
+
+.scroll-bar { -fx-background-color: -sx-bg; }
+.scroll-bar .thumb { -fx-background-color: -sx-scroll-thumb; -fx-background-radius: 4; }
+.scroll-bar .thumb:hover { -fx-background-color: -sx-border-hover; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-opacity: 0; -fx-padding: 0 4 0 4; }
+
+/* 表单视图：一行一个字段，名字、值、类型标记各占一段 */
+.form-view .form-scroll,
+.form-view .form-scroll > .viewport {
+    -fx-background-color: -sx-panel;
+}
+
+.form-view .form-field-row {
+    -fx-border-color: transparent transparent -sx-chrome-2 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.form-view .form-field-row:hover {
+    -fx-background-color: -sx-panel-3;
+}
+
+.form-field-name {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sx-text-2;
+}
+
+/* 数据模型图 */
+.er-box {
+    -fx-background-color: -sx-panel;
+    -fx-border-color: -sx-border-hover;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 8, 0, 0, 2);
+}
+
+.er-header {
+    -fx-background-color: -sx-sidebar;
+    -fx-padding: 0 8 0 8;
+    -fx-alignment: center-left;
+    -fx-border-color: transparent transparent -sx-border transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-radius: 5 5 0 0;
+}
+
+.er-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sx-text;
+}
+
+.er-row {
+    -fx-padding: 0 8 0 6;
+    -fx-alignment: center-left;
+}
+
+.er-column {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -sx-text-2;
+}
+
+.er-type {
+    -fx-font-size: 9.5px;
+    -fx-text-fill: -sx-text-3;
+}
+
+.er-marker {
+    -fx-font-size: 9px;
+    -fx-text-fill: -sx-accent;
+}
+
+/* 精确数值列：金额链路一眼可辨，两端的精度约定对不对得上就看这里 */
+.er-exact {
+    -fx-background-color: -sx-amber-bg;
+}
+
+.er-type-exact {
+    -fx-text-fill: -sx-amber;
+    -fx-font-weight: bold;
+}
+
+.er-line {
+    -fx-stroke: -sx-text-3;
+    -fx-stroke-width: 1.4;
+}
+
+/* 虚线 = 按命名推测，库里没有这条外键 */
+.er-line-guessed {
+    -fx-stroke: -sx-amber-border;
+    -fx-stroke-width: 1.2;
+}
+
+.badge-warn {
+    -fx-background-color: -sx-amber-bg;
+    -fx-text-fill: -sx-amber;
+    -fx-border-color: -sx-amber-border;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 1 6 1 6;
+    -fx-font-size: 10px;
+}
+
+/* 影响面确认框里的一条：先说是哪一条、哪张表，下面再摆语句原文 */
+.plainly-alert .risk-item {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sx-red;
+}
+
+.plainly-alert .risk-sql {
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sx-text-2;
+    -fx-padding: 0 0 4 12;
+}
+
+/* 连接分组目录：树的最外层，底色比库那一层再淡一点，只当分段用 */
+.tree-view .tree-cell.tree-row-folder { -fx-background-color: -sx-chrome-2; }
+.tree-view .tree-cell.tree-row-folder:selected { -fx-background-color: -sx-accent-tree; }
+.tree-view .tree-cell.tree-row-folder:hover { -fx-background-color: -sx-chrome-hover; }
+
+/*
+ * 空行一律透明。
+ *
+ * 树的单元格是复用的：一个曾经显示过库或分组的单元格被回收成空行之后，
+ * 如果代码那边漏了清样式类，它就会顶着别人的底色留在列表下方——
+ * 表现是树的空白区里凭空多出几条发白的横带，而且展开收起得越多、
+ * 被回收的空行越多，带子就越多。
+ *
+ * 代码里已经清了（见 ConnectionTreePane.markRowKind），这一条是兜底：
+ * 将来别处再漏一次，也不会在界面上留下痕迹。放在这些规则之后才压得住——
+ * 特指度相同，谁在后面谁生效。
+ */
+.tree-view .tree-cell:empty,
+.tree-view .tree-cell:empty:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* 分组名：它是一段的标题，比连接名沉一点，免得跟连接抢 */
+.tree-folder {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-text-fill: -sx-text-2;
+}
+
+/* 快捷键速查：键位一列等宽，说明一列常规字体 */
+.shortcut-keys {
+    -fx-font-family: "Cascadia Mono", Consolas, monospace;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -sx-text;
+    -fx-font-weight: bold;
+}
+
+.shortcut-what {
+    -fx-font-size: 12px;
+    -fx-text-fill: -sx-text-2;
+}
+
+/*
+ * 数据网格的悬停提示：里面装的是<b>值本身</b>，不是说明文字。
+ *
+ * 所以用等宽字体——一串 18 位的编号、一段 JSON、一个哈希，
+ * 比例字体下没法逐位比对，而这个网格存在的理由就是让人看清每一位。
+ */
+.grid-cell-tip {
+    -fx-font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+    -fx-font-size: 12px;
+}

@@ -1,0 +1,46 @@
+# 构建产物
+target/
+build/
+dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# 运行时产生的日志
+#
+# plainly-stderr.log 里会出现真实的库名、表名和 SQL——那是排查用的，
+# 不是给外人看的。hs_err_pid*.log 更要紧：JVM 崩溃时会把完整命令行、
+# PATH 和 USERNAME 一起写进去。
+plainly-stdout.log*
+plainly-stderr.log*
+hs_err_pid*.log
+replay_pid*.log
+
+# 本机的 Maven 配置
+#
+# 仓库里给的是 settings.xml.example。真实的 settings.xml 带着
+# <localRepository>，那是各人机器上的路径，推上去只会让别人的构建指向一个
+# 不存在的目录——而 Maven 不会报错，它会安静地把那个目录当成空仓库重新下载。
+settings.xml
+
+# 演示库跑过之后 H2 留下的
+demo/*.trace.db
+demo/*-test.mv.db
+demo/*.lock.db
+
+# 探针生成的图
+tools/db-marks.png
+
+# 金仓驱动压缩包
+#
+# 追「V8R3 与随包驱动对不上」那个问题时从官网下的，十来份不同版本，
+# 加起来约 200M，代码里没有任何地方引用。第三方再分发物不该进这个库：
+# 授权是一回事，更要紧的是二进制一旦进了 git 历史就拿不掉了——
+# 后来想清干净只能重写历史，而那时候可能已经有人克隆过了。
+# 需要哪一版自己从官网取。
+kingbase/
+
+# 排查样式时的截图
+样式问题*.png

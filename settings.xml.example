@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  项目级 Maven 配置。
+
+  为什么需要它：机器全局 ~/.m2/settings.xml 常被配成某个镜像 mirrorOf=*，
+  那个地址一旦不可达，所有依赖解析会挂起到超时——而且不报错，只是卡住。
+  这里显式指向 repo1.maven.org，把构建和机器全局配置隔开。
+
+  用法：把本文件复制成 settings.xml，再
+        mvn -s settings.xml -gs settings.xml <goal>
+
+  settings.xml 本身在 .gitignore 里：它可能带着各人机器上的本地仓库路径。
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <!--
+    本机已经下载过依赖的话，把仓库指过去，可以整个离线构建：
+      <localRepository>D:/mavenLib</localRepository>
+    不写就用默认的 ~/.m2/repository，首次构建会联网拉一遍。
+  -->
+  <interactiveMode>false</interactiveMode>
+
+  <mirrors>
+    <mirror>
+      <id>central-direct</id>
+      <name>Maven Central (direct)</name>
+      <url>https://repo1.maven.org/maven2</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
+
+</settings>

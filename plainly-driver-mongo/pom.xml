@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.plainly</groupId>
+    <artifactId>plainly-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>plainly-driver-mongo</artifactId>
+  <name>Plainly :: MongoDB 驱动实现</name>
+  <description>
+    MongoDB 不是 SQL 库，走不了 JDBC。这里用官方的同步驱动——
+    和 Redis 不同，Mongo 的线协议是 BSON + OP_MSG，还带 SCRAM 认证与拓扑发现，
+    自己实现划不来，而官方驱动只多带两个 jar（bson、driver-core），
+    netty 和 slf4j 都是可选依赖，没引进来。
+
+    「精确数值只以文本承载」这条规则在这里落在 MongoValues 上：
+    Decimal128 和 Int64 一律走字符串，绝不经过 double。
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.plainly</groupId>
+      <artifactId>plainly-driver-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-sync</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

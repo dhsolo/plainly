@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.sl{font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em;text-transform:uppercase}
+.btn{display:flex;align-items:center;justify-content:center;gap:5px;height:27px;padding:0 13px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;color:#3a3a36}
+.tab{display:flex;align-items:center;height:32px;padding:0 15px;font-size:12.5px;color:#6b6b66}
+.tab-on{background:#fff;border:1px solid #d9d9d3;border-bottom:1px solid #fff;border-radius:4px 4px 0 0;margin-bottom:-1px;color:#1c1c1a;font-weight:600}
+.hd{display:flex;align-items:center;height:26px;padding:0 9px;font-size:10.5px;font-weight:600;color:#5f5f5a;border-right:1px solid #deded8;background:#eeeeeb;letter-spacing:.03em;flex-shrink:0}
+.cl{display:flex;align-items:center;height:27px;padding:0 9px;font-size:11.5px;border-right:1px solid #f0f0ec;border-bottom:1px solid #f2f2ee;overflow:hidden;white-space:nowrap;flex-shrink:0;background:#fff}
+.row{display:flex}
+.sel .cl{background:#e4f0f0}
+.pick{display:flex;align-items:center;justify-content:space-between;height:27px;padding:0 9px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12px}
+.in{display:flex;align-items:center;height:27px;padding:0 9px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12px}
+.ck{width:13px;height:13px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ck-off{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:2px;background:#fff;flex-shrink:0}
+.tag{font-size:9.5px;padding:1px 6px;border-radius:3px;white-space:nowrap}
+.t-ok{color:#3a6b3a;background:#eef5ee;border:1px solid #d4e4d4}
+.t-run{color:#0f6f70;background:#e9f3f3;border:1px solid #c4dedd}
+.t-err{color:#a0402a;background:#fdf5f3;border:1px solid #e8cfc7}
+.t-off{color:#a8a8a1;background:#f7f7f4;border:1px solid #ececE6}
+.step{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff;border:1px solid #e0e0da;border-radius:4px}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:1060px;height:800px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:38px;padding:0 14px;background:#f0f0ed;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4" style="margin-right:8px"><circle cx="8" cy="8" r="5.6"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+    <span style="font-size:13px;font-weight:600">计划任务</span>
+    <span style="font-size:12px;color:#8a8a84;margin-left:8px">把备份、传输、同步、导出串成可定时重放的流程</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <div style="display:flex;align-items:flex-end;height:33px;background:#f7f7f4;border-bottom:1px solid #d9d9d3;padding-left:12px;flex-shrink:0">
+    <span class="tab tab-on">任务</span>
+    <span class="tab">备份</span>
+    <span class="tab">运行记录</span>
+  </div>
+
+  <div style="display:flex;flex-grow:1;min-height:0">
+
+    <!-- 任务列表 -->
+    <div style="display:flex;flex-direction:column;width:400px;border-right:1px solid #d9d9d3;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #e4e4e0">
+        <span class="btn" style="height:23px;font-size:11.5px;padding:0 9px"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.8"><path d="M8 3.4v9.2M3.4 8h9.2"></path></svg>新建任务</span>
+        <div style="flex-grow:1"></div>
+        <span style="font-size:11px;color:#8a8a84">4 个任务，3 个已启用</span>
+      </div>
+
+      <div class="row" style="border-bottom:1px solid #cdcdc6">
+        <div class="hd" style="flex-grow:1">任务</div>
+        <div class="hd" style="width:110px">下次运行</div>
+        <div class="hd" style="width:70px">状态</div>
+      </div>
+
+      <div class="row sel"><div class="cl" style="flex-grow:1;font-weight:600">生产库每日全量备份</div><div class="cl mono" style="width:110px;font-size:10.5px">今日 03:00</div><div class="cl" style="width:70px"><span class="tag t-ok">正常</span></div></div>
+      <div class="row"><div class="cl" style="flex-grow:1">测试库结构对齐生产</div><div class="cl mono" style="width:110px;font-size:10.5px">周一 02:00</div><div class="cl" style="width:70px"><span class="tag t-ok">正常</span></div></div>
+      <div class="row"><div class="cl" style="flex-grow:1">GMV 日报导出到共享盘</div><div class="cl mono" style="width:110px;font-size:10.5px">今日 07:30</div><div class="cl" style="width:70px"><span class="tag t-run">运行中</span></div></div>
+      <div class="row"><div class="cl" style="flex-grow:1;color:#8a8a84">订单归档到 analytics</div><div class="cl" style="width:110px;color:#a8a8a1">—</div><div class="cl" style="width:70px"><span class="tag t-off">已停用</span></div></div>
+
+      <div style="flex-grow:1;background:#fbfbf9"></div>
+
+      <div style="padding:9px 12px;border-top:1px solid #e4e4e0;background:#fafaf8">
+        <div style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em;margin-bottom:6px">最近运行</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px">
+            <span class="tag t-ok">成功</span><span class="mono" style="font-size:10.5px;color:#5f5f5a">08-31 03:00</span>
+            <span style="color:#8a8a84">全量备份 · 4.2 GB · 6 分 12 秒</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px">
+            <span class="tag t-ok">成功</span><span class="mono" style="font-size:10.5px;color:#5f5f5a">08-30 03:00</span>
+            <span style="color:#8a8a84">全量备份 · 4.2 GB · 5 分 58 秒</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px">
+            <span class="tag t-err">失败</span><span class="mono" style="font-size:10.5px;color:#5f5f5a">08-29 03:00</span>
+            <span style="color:#a0402a">磁盘空间不足，已保留上一份</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 任务编辑 -->
+    <div style="display:flex;flex-direction:column;gap:14px;padding:16px 18px;flex-grow:1;min-width:0">
+
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span class="sl">任务名</span>
+        <span class="in" style="max-width:340px">生产库每日全量备份</span>
+      </div>
+
+      <!-- 步骤 -->
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="sl">步骤</span>
+          <span style="font-size:11px;color:#8a8a84">按顺序执行，任一步失败即中止并通知</span>
+          <div style="flex-grow:1"></div>
+          <span class="btn" style="height:22px;font-size:11px;padding:0 8px">添加步骤</span>
+        </div>
+
+        <div class="step">
+          <span style="display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:9px;background:#0f6f70;color:#fff;font-size:10px;font-weight:600;flex-shrink:0">1</span>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><path d="M8 2.6v7.6M5 7.4 8 10.4l3-3M3 12.6h10"></path></svg>
+          <span style="font-size:12px">备份 <span class="mono" style="font-size:11.5px">shop-prod / shop_prod</span></span>
+          <div style="flex-grow:1"></div>
+          <span style="font-size:10.5px;color:#8a8a84">全部对象 · 含数据</span>
+        </div>
+
+        <div class="step">
+          <span style="display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:9px;background:#0f6f70;color:#fff;font-size:10px;font-weight:600;flex-shrink:0">2</span>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><path d="M2.6 8.4 6 11.8l7.4-7.6"></path></svg>
+          <span style="font-size:12px">校验备份文件可还原</span>
+          <div style="flex-grow:1"></div>
+          <span style="font-size:10.5px;color:#8a8a84">还原到临时库并比对行数</span>
+        </div>
+
+        <div class="step">
+          <span style="display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:9px;background:#0f6f70;color:#fff;font-size:10px;font-weight:600;flex-shrink:0">3</span>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4"><path d="M3 4.6h10M4.6 4.6v8.2h6.8V4.6M6.4 4.6V3h3.2v1.6"></path></svg>
+          <span style="font-size:12px">清理 <span class="mono" style="font-size:11.5px">14</span> 天前的备份</span>
+          <div style="flex-grow:1"></div>
+          <span style="font-size:10.5px;color:#8a8a84">保留每月 1 号那份</span>
+        </div>
+      </div>
+
+      <!-- 调度 -->
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <span class="sl">调度</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="pick" style="width:110px">每天 <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span style="font-size:12px;color:#5f5f5a">于</span>
+          <span class="in mono" style="width:80px">03:00</span>
+          <span class="pick" style="width:150px">Asia/Shanghai <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <div style="flex-grow:1"></div>
+          <span class="mono" style="font-size:10.5px;color:#8a8a84">cron: 0 0 3 * * ?</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 11px;background:#f2f8f8;border:1px solid #c4dedd;border-radius:4px">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.5" style="flex-shrink:0"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 4.6V8l2.4 1.6"></path></svg>
+          <span style="font-size:10.5px;color:#0f6f70">接下来三次：<span class="mono">09-02 03:00 · 09-03 03:00 · 09-04 03:00</span></span>
+        </div>
+      </div>
+
+      <!-- 失败处理 -->
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <span class="sl">失败处理</span>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>失败后重试 <span class="mono" style="font-size:11.5px">2</span> 次，间隔 <span class="mono" style="font-size:11.5px">10</span> 分钟</span>
+          <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>保留上一份成功的备份，不被本次失败覆盖</span>
+          <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#5f5f5a"><span class="ck-off"></span>发送邮件通知</span>
+        </div>
+      </div>
+
+      <div style="flex-grow:1"></div>
+
+      <div style="display:flex;align-items:flex-start;gap:9px;padding:9px 12px;background:#fefbf4;border:1px solid #ecdcb4;border-radius:4px">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#a8781a" stroke-width="1.5" style="flex-shrink:0;margin-top:1px"><path d="M8 2.2 14.4 13.4H1.6z"></path><path d="M8 6.4v3.2M8 11.4v.6"></path></svg>
+        <span style="font-size:10.5px;color:#8a5a00;line-height:1.6">
+          <b>任务在应用进程内运行，应用关掉就不会触发。</b>需要真正的无人值守，
+          应当把任务导出为命令行并交给 Windows 计划任务——界面上会给出对应的命令。
+          假装能在关机后运行是不诚实的。
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;height:54px;padding:0 18px;background:#f0f0ed;border-top:1px solid #d9d9d3;flex-shrink:0">
+    <span class="btn">立即运行一次</span>
+    <span class="btn">导出为命令行</span>
+    <div style="flex-grow:1"></div>
+    <span class="btn">取消</span>
+    <span class="btn" style="background:#0f6f70;border-color:#0f6f70;color:#fff;font-weight:500">保存任务</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

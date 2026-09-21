@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.plainly</groupId>
+    <artifactId>plainly-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>plainly-driver-redis</artifactId>
+  <name>Plainly :: Redis 驱动实现</name>
+  <description>
+    Redis 不是 SQL 库，走不了 JDBC。这里自己实现 RESP2 协议——
+    协议本身只有五种回复类型，比引一整个客户端库（连同它的连接池、日志门面、
+    JSON 库）划算，也让「值一律按字节读、不做数值转换」这条规则由自己把关。
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.plainly</groupId>
+      <artifactId>plainly-driver-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.btn{display:flex;align-items:center;gap:5px;height:24px;padding:0 9px;border:1px solid #d6d6d0;border-radius:3px;background:#fff;font-size:12px;color:#3a3a36}
+.seg{display:flex;align-items:center;padding:0 11px;height:24px;font-size:12px;background:#fff;color:#4a4a45;border-left:1px solid #d6d6d0}
+.seg-on{background:#0f6f70;color:#fff;font-weight:500;border-left:none}
+.fl{font-size:11.5px;color:#5f5f5a;text-align:right;padding-top:6px}
+.fi{display:flex;align-items:center;height:29px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px}
+.fi-ro{background:#f7f7f4;color:#5f5f5a}
+.ftype{font-size:10px;color:#a0a099;padding-top:7px}
+.badge{font-size:10px;color:#8a5a00;background:#fdf6e6;border:1px solid #ecdcb4;border-radius:3px;padding:1px 6px}
+.nul{color:#adada6;font-style:italic}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:1120px;height:840px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:34px;padding:0 12px;background:#e9e9e5;border-bottom:1px solid #d4d4ce;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4" style="margin-right:7px"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>
+    <span style="font-size:12.5px;font-weight:600">orders</span>
+    <span style="font-size:11.5px;color:#8a8a84;margin-left:8px">shop_prod</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <!-- 视图切换 -->
+  <div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-bottom:1px solid #e4e4e0;flex-shrink:0">
+    <div style="display:flex;border:1px solid #d6d6d0;border-radius:3px;overflow:hidden;height:24px">
+      <span class="seg">网格</span>
+      <span class="seg seg-on">表单</span>
+      <span class="seg">文本</span>
+    </div>
+    <div style="width:1px;height:18px;background:#e0e0da"></div>
+    <span class="btn"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.6"><path d="M8 3.4v9.2M3.4 8h9.2"></path></svg>新增</span>
+    <span class="btn"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.6"><path d="M3.4 8h9.2"></path></svg>删除</span>
+    <span class="btn" style="border-color:#b8d4d4;background:#eaf4f4;color:#0f6f70;font-weight:500"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.8"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg>保存 <span style="background:#0f6f70;color:#fff;border-radius:8px;padding:0 5px;font-size:10px">1</span></span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:11px;color:#8a8a84">字段多、含长文本的表，表单视图比横向拉网格快得多</span>
+  </div>
+
+  <!-- 记录导航 -->
+  <div style="display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;background:#f7f7f4;border-bottom:1px solid #e4e4e0;flex-shrink:0">
+    <span style="display:flex;align-items:center;justify-content:center;width:24px;height:21px;border:1px solid #d6d6d0;border-radius:3px;background:#fff;color:#a8a8a1">&#8676;</span>
+    <span style="display:flex;align-items:center;justify-content:center;width:24px;height:21px;border:1px solid #d6d6d0;border-radius:3px;background:#fff;color:#a8a8a1">&#8249;</span>
+    <span style="font-size:11.5px;color:#5f5f5a">第 <span class="mono">2</span> / <span class="mono">1,284,003</span> 条</span>
+    <span style="display:flex;align-items:center;justify-content:center;width:24px;height:21px;border:1px solid #d6d6d0;border-radius:3px;background:#fff">&#8250;</span>
+    <span style="display:flex;align-items:center;justify-content:center;width:24px;height:21px;border:1px solid #d6d6d0;border-radius:3px;background:#fff">&#8677;</span>
+    <div style="width:1px;height:14px;background:#dedeD8"></div>
+    <span style="font-size:11px;color:#8a8a84">跳到 id =</span>
+    <span class="fi mono" style="height:21px;width:180px;font-size:11px">9223372036854775807</span>
+    <div style="flex-grow:1"></div>
+    <span style="font-size:11px;color:#8a5a00">1 处未保存修改</span>
+  </div>
+
+  <!-- 表单 -->
+  <div style="display:flex;flex-grow:1;min-height:0">
+
+    <div style="display:flex;flex-direction:column;gap:14px;padding:20px 22px;flex-grow:1;min-width:0">
+
+      <div style="display:grid;grid-template-columns:96px 1fr 150px;gap:12px;align-items:start">
+        <span class="fl">id</span>
+        <span class="fi fi-ro mono">9223372036854775807</span>
+        <span class="ftype">BIGINT · 主键 · 只读</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:96px 1fr 150px;gap:12px;align-items:start">
+        <span class="fl">user_id</span>
+        <span class="fi mono">88102</span>
+        <span class="ftype">INT · NOT NULL</span>
+      </div>
+
+      <!-- 精确数值字段：给足宽度，等宽字体，并说明读取路径 -->
+      <div style="display:grid;grid-template-columns:96px 1fr 150px;gap:12px;align-items:start">
+        <span class="fl">amount</span>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <span class="fi mono" style="border-color:#0f6f70;box-shadow:0 0 0 2px #e4f0f0;font-size:13px">12345678901234567890.1234567890</span>
+          <div style="display:flex;align-items:center;gap:9px">
+            <span class="badge">精确数值 · 全程按原文传递</span>
+            <span class="mono" style="font-size:10.5px;color:#8a8a84">BigDecimal(precision=30, scale=10)</span>
+          </div>
+        </div>
+        <span class="ftype">DECIMAL(38,10)<br><span style="color:#8a5a00">NOT NULL</span></span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:96px 1fr 150px;gap:12px;align-items:start">
+        <span class="fl">currency</span>
+        <span class="fi" style="justify-content:space-between;max-width:200px">CNY <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+        <span class="ftype">CHAR(3)</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:96px 1fr 150px;gap:12px;align-items:start">
+        <span class="fl">status</span>
+        <span class="fi" style="justify-content:space-between;max-width:200px;background:#fdf6e6;border-color:#c99a24">PENDING <span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+        <span class="ftype" style="color:#8a5a00">VARCHAR(16)<br>已修改</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:96px 1fr 150px;gap:12px;align-items:start">
+        <span class="fl">created_at</span>
+        <span class="fi mono" style="max-width:260px">2026-08-31 09:16:44.283915</span>
+        <span class="ftype">DATETIME(6)</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:96px 1fr 150px;gap:12px;align-items:start">
+        <span class="fl">note</span>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:flex-start;height:80px;padding:8px 10px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px">
+            <span class="nul">(NULL)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="display:flex;align-items:center;gap:6px;font-size:11.5px"><span style="width:13px;height:13px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;display:flex;align-items:center;justify-content:center"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>设为 NULL</span>
+            <span style="font-size:10.5px;color:#8a8a84">勾掉即改为空字符串——两者在数据库里是两回事</span>
+          </div>
+        </div>
+        <span class="ftype">VARCHAR(255)<br>可空</span>
+      </div>
+    </div>
+
+    <!-- 右侧：外键跳转与关联 -->
+    <div style="display:flex;flex-direction:column;width:264px;border-left:1px solid #e4e4e0;background:#fbfbf9;flex-shrink:0">
+      <div style="padding:9px 13px;border-bottom:1px solid #eeeeea">
+        <span style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em">关联记录</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;padding:10px 13px">
+        <span style="font-size:11px;color:#8a8a84">经外键 user_id</span>
+        <div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:#fff;border:1px solid #e0e0da;border-radius:4px;margin-top:3px">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7a8a9a" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>
+          <span class="mono" style="font-size:11.5px">customers</span>
+          <div style="flex-grow:1"></div>
+          <span style="font-size:10.5px;color:#0f6f70">打开 &#8250;</span>
+        </div>
+        <span style="font-size:11px;color:#5f5f5a;margin-top:3px">周雨桐 · CN-SH</span>
+      </div>
+
+      <div style="padding:9px 13px;border-top:1px solid #eeeeea;border-bottom:1px solid #eeeeea;margin-top:6px">
+        <span style="font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em">被引用</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;padding:10px 13px">
+        <div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:#fff;border:1px solid #e0e0da;border-radius:4px">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7a8a9a" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>
+          <span class="mono" style="font-size:11.5px">order_items</span>
+          <div style="flex-grow:1"></div>
+          <span class="mono" style="font-size:10.5px;color:#8a8a84">3</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;padding:7px 9px;background:#fff;border:1px solid #e0e0da;border-radius:4px;margin-top:5px">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#7a8a9a" stroke-width="1.3"><rect x="2.2" y="3" width="11.6" height="10" rx="1"></rect><path d="M2.2 6.2h11.6M6.2 6.2V13"></path></svg>
+          <span class="mono" style="font-size:11.5px">payments</span>
+          <div style="flex-grow:1"></div>
+          <span class="mono" style="font-size:10.5px;color:#8a8a84">1</span>
+        </div>
+      </div>
+      <div style="flex-grow:1"></div>
+      <div style="padding:10px 13px;border-top:1px solid #eeeeea">
+        <span style="font-size:10.5px;color:#a8a8a1;line-height:1.6">关联记录由外键约束推导，无外键时此处为空</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:14px;height:26px;padding:0 12px;background:#e9e9e5;border-top:1px solid #d9d9d3;flex-shrink:0;font-size:10.5px;color:#5f5f5a">
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:#5d8f5d"></span>MySQL 8.0.35 · shop_prod</span>
+    <div style="flex-grow:1"></div>
+    <span>Ctrl+S 保存 · PgUp/PgDn 翻记录</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,108 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "功能全景" },
+    { "id": "page-2", "name": "核心工作流" },
+    { "id": "page-3", "name": "数据流转" },
+    { "id": "page-4", "name": "建模与查询" },
+    { "id": "page-5", "name": "运维与自动化" }
+  ],
+
+  "artboards": [
+    { "file": "FeatureMap.dc.html", "page": "page-1", "x": 0, "y": 0, "w": 1400, "h": 1180, "title": "功能全景 · 对照 Navicat 的八个域" },
+
+    { "file": "Main.dc.html", "page": "page-2", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "主界面 · 网格视图" },
+    { "file": "SqlEditor.dc.html", "page": "page-2", "x": 1560, "y": 0, "w": 1440, "h": 900, "title": "SQL 编辑器" },
+    { "file": "FormView.dc.html", "page": "page-2", "x": 3120, "y": 0, "w": 1120, "h": 840, "title": "表单视图" },
+    { "file": "Connection.dc.html", "page": "page-2", "x": 0, "y": 1060, "w": 580, "h": 720, "title": "新建连接" },
+    { "file": "TableDesign.dc.html", "page": "page-2", "x": 700, "y": 1060, "w": 1180, "h": 740, "title": "表结构设计器" },
+    { "file": "FilterSort.dc.html", "page": "page-2", "x": 1980, "y": 1060, "w": 800, "h": 700, "title": "筛选与排序" },
+    { "file": "Export.dc.html", "page": "page-2", "x": 2880, "y": 1060, "w": 720, "h": 680, "title": "数据导出" },
+
+    { "file": "StructureSync.dc.html", "page": "page-3", "x": 0, "y": 0, "w": 1180, "h": 820, "title": "结构同步" },
+    { "file": "DataSync.dc.html", "page": "page-3", "x": 1300, "y": 0, "w": 1180, "h": 820, "title": "数据同步" },
+    { "file": "DataTransfer.dc.html", "page": "page-3", "x": 0, "y": 980, "w": 940, "h": 790, "title": "数据传输" },
+    { "file": "Import.dc.html", "page": "page-3", "x": 1060, "y": 980, "w": 800, "h": 800, "title": "导入向导" },
+
+    { "file": "QueryBuilder.dc.html", "page": "page-4", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "可视化查询构建器" },
+    { "file": "ErDiagram.dc.html", "page": "page-4", "x": 1560, "y": 0, "w": 1440, "h": 900, "title": "ER 图 · 数据模型" },
+
+    { "file": "Automation.dc.html", "page": "page-5", "x": 0, "y": 0, "w": 1060, "h": 800, "title": "计划任务" }
+  ],
+
+  "annotations": [
+    {
+      "id": "note-map",
+      "page": "page-1",
+      "x": 0,
+      "y": -150,
+      "w": 620,
+      "text": "先决定不做什么。\nNavicat 的功能表很长，但价值分布极不均匀：数据流转（传输/结构同步/数据同步）是真需求且缺少好的免费替代，值得优先；报表设计器和三层建模是另一个品类，塞进来只会让产品失焦。这张图上标「不做」的每一条都附了理由。"
+    },
+    {
+      "id": "note-grid",
+      "page": "page-2",
+      "x": 0,
+      "y": -178,
+      "w": 430,
+      "text": "主界面\nid 与 amount 用的是真实极端值：BIGINT 上界、DECIMAL(38,10) 满位、1e-10。底部单元格面板显示原始值与读取路径 —— 精度这条线在界面上是看得见的，不只是文档约定。"
+    },
+    {
+      "id": "note-editor",
+      "page": "page-2",
+      "x": 1560,
+      "y": -178,
+      "w": 430,
+      "text": "SQL 编辑器\n补全弹窗是 JavaFX 侧工作量最大的一块。RichTextFX 只提供语法高亮，弹窗、别名解析（c → customers）、Tab 补全都要自建。这张图就是那部分的验收标准。"
+    },
+    {
+      "id": "note-form",
+      "page": "page-2",
+      "x": 3120,
+      "y": -178,
+      "w": 430,
+      "text": "表单视图\n字段多的表横向拉网格很痛苦，长文本和 BLOB 更是只有表单放得下。右侧的关联记录由外键推导，是「看懂一条数据」最快的路径。"
+    },
+    {
+      "id": "note-export",
+      "page": "page-2",
+      "x": 2880,
+      "y": 928,
+      "w": 430,
+      "text": "导出\nxlsx 的数值单元格是 IEEE 754 双精度，这与用什么语言写无关。把损失量直接画在界面上，让用户在点导出之前就做选择。"
+    },
+    {
+      "id": "note-dataflow",
+      "page": "page-3",
+      "x": 0,
+      "y": -190,
+      "w": 700,
+      "text": "这一页是 Navicat 真正的付费理由。\n单纯的表格编辑器开源替代品一大把，但跨库搬数据、两库比对没有好的免费方案。\n精度这条主线在这里换了三副面孔：跨库传输时是类型映射（PostgreSQL 没有无符号整型，BIGINT UNSIGNED 必须落到 NUMERIC(20) 才不溢出）；导入时是类型推断（CSV 里的长数字被推断成 double 就毁了）；数据同步时是比较语义（两侧 scale 不同，1.10 和 1.1 算不算差异）。"
+    },
+    {
+      "id": "note-sync-risk",
+      "page": "page-3",
+      "x": 1300,
+      "y": -190,
+      "w": 560,
+      "text": "两处刻意的默认值\n结构同步里「仅目标有」的对象默认不勾选，数据同步里 DELETE 默认不勾选。\n方向是「以源为准」，但源里没有不等于该删——很可能只是源库还没同步过来。不可逆的操作不该靠默认值替用户决定。"
+    },
+    {
+      "id": "note-modeling",
+      "page": "page-4",
+      "x": 0,
+      "y": -160,
+      "w": 620,
+      "text": "查询构建器与 ER 图共用一套画布组件。\n构建器解决「不写 SQL 也能查数」，ER 图解决「看懂一个陌生库」。两者的连线都由外键约束推导；历史库常常没建外键，此时按命名推测并画成虚线，提示值得确认。"
+    },
+    {
+      "id": "note-automation",
+      "page": "page-5",
+      "x": 0,
+      "y": -150,
+      "w": 620,
+      "text": "一条不讨好但必要的说明\n计划任务跑在应用进程内，应用关掉就不会触发。界面上直说这一点，并提供「导出为命令行」交给 Windows 计划任务。假装能在关机后运行，等到某天备份没跑才发现，代价比现在说清楚大得多。"
+    }
+  ],
+
+  "launch": { "view": "canvas", "page": "page-1" }
+}

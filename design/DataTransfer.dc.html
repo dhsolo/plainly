@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.sl{font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em;text-transform:uppercase}
+.sel-box{display:flex;align-items:center;justify-content:space-between;height:28px;padding:0 10px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px}
+.btn{display:flex;align-items:center;justify-content:center;height:28px;padding:0 15px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;color:#3a3a36}
+.ck{width:13px;height:13px;border:1px solid #0f6f70;border-radius:2px;background:#0f6f70;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ck-off{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:2px;background:#fff;flex-shrink:0}
+.rd{width:13px;height:13px;border:4px solid #0f6f70;border-radius:50%;background:#fff;flex-shrink:0}
+.rd-off{width:13px;height:13px;border:1px solid #c4c4bd;border-radius:50%;background:#fff;flex-shrink:0}
+.trow{display:flex;align-items:center;gap:9px;padding:5px 12px;border-bottom:1px solid #f4f4f0;font-size:12px}
+.map{display:flex;align-items:center;gap:8px;padding:5px 11px;border-bottom:1px solid #f4f4f0}
+.mono-s{font-family:"JetBrains Mono",Consolas,monospace;font-size:11px}
+.ok{color:#4d7a4d}
+.warn{color:#8a5a00}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:940px;height:790px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:38px;padding:0 14px;background:#f0f0ed;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4" style="margin-right:8px"><path d="M2 5.4h9M8.2 2.6 11 5.4 8.2 8.2"></path><path d="M14 10.6H5M7.8 7.8 5 10.6l2.8 2.8"></path></svg>
+    <span style="font-size:13px;font-weight:600">数据传输</span>
+    <span style="font-size:12px;color:#8a8a84;margin-left:8px">跨连接、跨数据库类型搬运表结构与数据</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;padding:16px 18px;flex-grow:1;min-height:0">
+
+    <!-- 源 → 目标 -->
+    <div style="display:flex;align-items:flex-end;gap:12px">
+      <div style="display:flex;flex-direction:column;gap:4px;flex-grow:1">
+        <span class="sl">源</span>
+        <span class="sel-box">
+          <span style="display:flex;align-items:center;gap:7px">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.3"><ellipse cx="8" cy="3.8" rx="5" ry="2"></ellipse><path d="M3 3.8v8.4c0 1.1 2.2 2 5 2s5-.9 5-2V3.8"></path><path d="M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"></path></svg>
+            shop-prod / shop_prod
+            <span style="font-size:10px;color:#8a8a84">MySQL 8.0.35</span>
+          </span>
+          <span style="color:#a8a8a1;font-size:9px">&#9660;</span>
+        </span>
+      </div>
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.6" style="margin-bottom:6px"><path d="M2.5 8h11M9.6 4.1 13.5 8l-3.9 3.9"></path></svg>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-grow:1">
+        <span class="sl">目标</span>
+        <span class="sel-box">
+          <span style="display:flex;align-items:center;gap:7px">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.3"><ellipse cx="8" cy="3.8" rx="5" ry="2"></ellipse><path d="M3 3.8v8.4c0 1.1 2.2 2 5 2s5-.9 5-2V3.8"></path><path d="M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"></path></svg>
+            pg-analytics / warehouse
+            <span style="font-size:10px;color:#8a8a84">PostgreSQL 15.4</span>
+          </span>
+          <span style="color:#a8a8a1;font-size:9px">&#9660;</span>
+        </span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;flex-grow:1;min-height:0">
+
+      <!-- 对象选择 -->
+      <div style="display:flex;flex-direction:column;width:340px;flex-shrink:0">
+        <span class="sl" style="margin-bottom:6px">传输对象</span>
+        <div style="display:flex;flex-direction:column;border:1px solid #e0e0da;border-radius:4px;overflow:hidden;flex-grow:1">
+          <div style="display:flex;align-items:center;gap:9px;padding:6px 12px;background:#f7f7f4;border-bottom:1px solid #e4e4e0">
+            <span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>
+            <span style="font-size:11.5px;font-weight:500">全选</span>
+            <div style="flex-grow:1"></div>
+            <span style="font-size:10.5px;color:#8a8a84">4 / 24 张表</span>
+          </div>
+          <div class="trow"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span><span class="mono" style="font-size:11.5px">orders</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#a8a8a1">1,284,003</span></div>
+          <div class="trow"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span><span class="mono" style="font-size:11.5px">order_items</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#a8a8a1">4,102,887</span></div>
+          <div class="trow"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span><span class="mono" style="font-size:11.5px">customers</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#a8a8a1">90,277</span></div>
+          <div class="trow"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span><span class="mono" style="font-size:11.5px">payments</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#a8a8a1">1,190,441</span></div>
+          <div class="trow" style="color:#8a8a84"><span class="ck-off"></span><span class="mono" style="font-size:11.5px">audit_log</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#a8a8a1">88,204,113</span></div>
+          <div class="trow" style="color:#8a8a84"><span class="ck-off"></span><span class="mono" style="font-size:11.5px">coupons</span><div style="flex-grow:1"></div><span class="mono" style="font-size:10.5px;color:#a8a8a1">3,201</span></div>
+          <div class="trow" style="color:#a8a8a1;font-size:11px;border-bottom:none">…另外 18 张</div>
+          <div style="flex-grow:1;background:#fbfbf9"></div>
+        </div>
+      </div>
+
+      <!-- 类型映射 -->
+      <div style="display:flex;flex-direction:column;flex-grow:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">
+          <span class="sl">类型映射</span>
+          <span style="font-size:11px;color:#8a8a84">MySQL → PostgreSQL</span>
+        </div>
+        <div style="display:flex;flex-direction:column;border:1px solid #e0e0da;border-radius:4px;overflow:hidden;flex-grow:1">
+          <div class="map" style="background:#f7f7f4;border-bottom:1px solid #e4e4e0">
+            <span class="sl" style="width:180px">源类型</span>
+            <span class="sl" style="flex-grow:1">目标类型</span>
+          </div>
+
+          <div class="map"><span class="mono-s" style="width:180px">DECIMAL(38,10)</span><span class="mono-s" style="flex-grow:1">NUMERIC(38,10)</span><span class="ok" style="font-size:10.5px">精确对应</span></div>
+          <div class="map"><span class="mono-s" style="width:180px">BIGINT</span><span class="mono-s" style="flex-grow:1">BIGINT</span><span class="ok" style="font-size:10.5px">精确对应</span></div>
+
+          <div class="map" style="background:#fdf6e6">
+            <span class="mono-s" style="width:180px;font-weight:500">BIGINT UNSIGNED</span>
+            <span class="mono-s" style="flex-grow:1;font-weight:500">NUMERIC(20)</span>
+            <span class="warn" style="font-size:10.5px">已避损</span>
+          </div>
+          <div style="padding:0 12px 8px 203px;background:#fdf6e6;border-bottom:1px solid #f2e7cd">
+            <span style="font-size:10.5px;color:#8a5a00;line-height:1.55">
+              PostgreSQL 没有无符号整型。上界 18446744073709551615 超出它的 BIGINT，
+              映射成 BIGINT 会溢出，所以改用 NUMERIC(20) 保住全部位数。
+            </span>
+          </div>
+
+          <div class="map"><span class="mono-s" style="width:180px">DATETIME(6)</span><span class="mono-s" style="flex-grow:1">TIMESTAMP(6)</span><span class="ok" style="font-size:10.5px">精确对应</span></div>
+          <div class="map"><span class="mono-s" style="width:180px">VARCHAR(255)</span><span class="mono-s" style="flex-grow:1">VARCHAR(255)</span><span class="ok" style="font-size:10.5px">精确对应</span></div>
+          <div class="map"><span class="mono-s" style="width:180px">TINYINT(1)</span><span class="mono-s" style="flex-grow:1">BOOLEAN</span><span class="ok" style="font-size:10.5px">精确对应</span></div>
+          <div class="map"><span class="mono-s" style="width:180px">JSON</span><span class="mono-s" style="flex-grow:1">JSONB</span><span class="ok" style="font-size:10.5px">精确对应</span></div>
+          <div class="map" style="border-bottom:none"><span class="mono-s" style="width:180px">LONGBLOB</span><span class="mono-s" style="flex-grow:1">BYTEA</span><span class="ok" style="font-size:10.5px">精确对应</span></div>
+          <div style="flex-grow:1;background:#fbfbf9"></div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 12px;background:#fafaf8;border-top:1px solid #eeeeea">
+            <span style="font-size:10.5px;color:#8a8a84">映射表可覆盖</span>
+            <div style="flex-grow:1"></div>
+            <span class="btn" style="height:21px;font-size:11px;padding:0 8px">自定义映射…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 选项 -->
+    <div style="display:flex;gap:28px">
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <span class="sl">目标已存在时</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="rd"></span>建表并插入（目标不存在则创建）</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#5f5f5a"><span class="rd-off"></span>先清空目标表再插入</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#5f5f5a"><span class="rd-off"></span>仅插入，跳过主键冲突的行</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <span class="sl">执行方式</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>批量提交，每 <span class="mono" style="font-size:11.5px">2000</span> 行一次</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px"><span class="ck"><svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6"><path d="M3.4 8.4 6.4 11.4l6.2-6.6"></path></svg></span>遇错停止并回滚当前批次</span>
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;color:#5f5f5a"><span class="ck-off"></span>传输后逐表比对行数</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 18px;background:#f7f7f4;border-top:1px solid #e4e4e0;flex-shrink:0">
+    <span style="font-size:11px;color:#8a8a84">预计 <span class="mono">6,667,608</span> 行 · 游标流式读取，内存占用与行数无关</span>
+    <div style="flex-grow:1"></div>
+    <span class="btn">取消</span>
+    <span class="btn">存为计划任务</span>
+    <span class="btn" style="background:#0f6f70;border-color:#0f6f70;color:#fff;font-weight:500">开始传输</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

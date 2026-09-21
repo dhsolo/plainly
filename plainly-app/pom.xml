@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.plainly</groupId>
+    <artifactId>plainly-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>plainly-app</artifactId>
+  <name>Plainly :: 桌面应用</name>
+  <description>JavaFX 界面与启动器。</description>
+
+  <properties>
+    <javafx.platform>win</javafx.platform>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.plainly</groupId>
+      <artifactId>plainly-core</artifactId>
+    </dependency>
+
+    <!--
+      带 classifier 的依赖不会命中父 POM 中无 classifier 的 dependencyManagement 条目，
+      版本必须在这里显式给出。
+      javafx-controls 会传递引入 javafx-graphics 与 javafx-base；
+      平台包（win）里含 classes 与本地库 dll，缺了它运行期会报 UnsatisfiedLinkError。
+    -->
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>${javafx.version}</version>
+      <classifier>${javafx.platform}</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>${javafx.version}</version>
+      <classifier>${javafx.platform}</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <version>${javafx.version}</version>
+      <classifier>${javafx.platform}</classifier>
+    </dependency>
+
+    <!-- SQL 编辑器：语法高亮由它提供，补全弹窗与别名解析是我们自己实现的 -->
+    <dependency>
+      <groupId>org.fxmisc.richtext</groupId>
+      <artifactId>richtextfx</artifactId>
+    </dependency>
+
+    <!--
+      H2 走 runtime：让用户不搭 MySQL 也能立刻打开 demo/ 里的演示库验证效果。
+      它同时是精度一致性测试的目标库，DECIMAL(38,10) 语义完整。
+    -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>plainly</finalName>
+    <plugins>
+      <!--
+        把全部依赖收进 target/deps，配合 Launcher 以 classpath 方式启动。
+        走 classpath 而不是 module-path，是为了绕开「JavaFX runtime components are missing」
+        —— 那个报错的根因是主类直接继承了 Application，这里用 Launcher 间接启动即可。
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-deps</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/deps</outputDirectory>
+              <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>com.plainly.app.Launcher</mainClass>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>deps/</classpathPrefix>
+              <!--
+                把 pom 的版本号写进 manifest（Implementation-Version）。
+
+                不写的话，程序运行起来是不知道自己是哪一版的——
+                「升级到底生效没有」只能去「程序和功能」里看，
+                而检测更新更是无从比起：拿不到本地版本，就没有可比的一端。
+              -->
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

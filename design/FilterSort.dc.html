@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"IBM Plex Sans","Segoe UI","Microsoft YaHei",sans-serif;font-size:13px;color:#1c1c1a;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:#0f6f70;text-decoration:none}a:hover{color:#0a4f50}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+.sl{font-size:10.5px;font-weight:600;color:#5f5f5a;letter-spacing:.03em;text-transform:uppercase}
+.btn{display:flex;align-items:center;justify-content:center;gap:5px;height:27px;padding:0 13px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12.5px;color:#3a3a36}
+.pick{display:flex;align-items:center;justify-content:space-between;height:27px;padding:0 9px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12px}
+.val{display:flex;align-items:center;height:27px;padding:0 9px;border:1px solid #d0d0ca;border-radius:3px;background:#fff;font-size:12px;font-family:"JetBrains Mono",Consolas,monospace}
+.logic{display:flex;align-items:center;justify-content:center;width:46px;height:22px;border:1px solid #b8d4d4;border-radius:3px;background:#eaf4f4;color:#0f6f70;font-size:11px;font-weight:600}
+.x{display:flex;align-items:center;justify-content:center;width:24px;height:27px;color:#a8a8a1;font-size:13px}
+.kw{color:#8a3d6b;font-weight:500}
+.st{color:#3a6b3a}
+.nm{color:#8a5a00}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;width:800px;height:700px;background:#fff;border:1px solid #c4c4bd;overflow:hidden">
+
+  <div style="display:flex;align-items:center;height:38px;padding:0 14px;background:#f0f0ed;border-bottom:1px solid #d9d9d3;flex-shrink:0">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.4" style="margin-right:8px"><path d="M3 4h10M5 8h6M7 12h2"></path></svg>
+    <span style="font-size:13px;font-weight:600">筛选与排序</span>
+    <span style="font-size:12px;color:#8a8a84;margin-left:8px">shop_prod.orders</span>
+    <div style="flex-grow:1"></div>
+    <span style="color:#6b6b66">&#10005;</span>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:18px;padding:18px 20px;flex-grow:1;min-height:0">
+
+    <!-- 筛选条件 -->
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="sl">筛选条件</span>
+        <div style="flex-grow:1"></div>
+        <span class="btn" style="height:23px;font-size:11.5px;padding:0 9px"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.8"><path d="M8 3.4v9.2M3.4 8h9.2"></path></svg>添加条件</span>
+        <span class="btn" style="height:23px;font-size:11.5px;padding:0 9px">添加条件组</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:7px">
+
+        <div style="display:grid;grid-template-columns:46px 180px 132px 1fr 24px;gap:8px;align-items:center">
+          <span style="font-size:11px;color:#a8a8a1;text-align:center">WHERE</span>
+          <span class="pick"><span class="mono" style="font-size:11.5px">status</span><span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span class="pick">等于<span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span class="val">PENDING</span>
+          <span class="x">&#10005;</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:46px 180px 132px 1fr 24px;gap:8px;align-items:center">
+          <span class="logic">AND</span>
+          <span class="pick"><span class="mono" style="font-size:11.5px">amount</span><span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span class="pick">大于等于<span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span class="val" style="border-color:#0f6f70">1000.0000000000</span>
+          <span class="x">&#10005;</span>
+        </div>
+
+        <!-- 精确数值条件的提示 -->
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-left:54px;padding:7px 11px;background:#fefbf4;border:1px solid #ecdcb4;border-radius:4px">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#a8781a" stroke-width="1.5" style="flex-shrink:0;margin-top:1px"><path d="M8 2.2 14.4 13.4H1.6z"></path><path d="M8 6.4v3.2M8 11.4v.6"></path></svg>
+          <span style="font-size:10.5px;color:#8a5a00;line-height:1.55">
+            <b>amount 是 DECIMAL(38,10)。</b>条件值以文本原样绑定为 BigDecimal，不经 double 解析——
+            否则形如 <span class="mono">1234567890123456789.5</span> 的阈值在比较前就已经偏了。
+          </span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:46px 180px 132px 1fr 24px;gap:8px;align-items:center">
+          <span class="logic">AND</span>
+          <span class="pick"><span class="mono" style="font-size:11.5px">created_at</span><span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span class="pick">介于<span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="val" style="flex-grow:1">2026-08-01 00:00:00</span>
+            <span style="font-size:11px;color:#8a8a84">和</span>
+            <span class="val" style="flex-grow:1">2026-08-31 23:59:59</span>
+          </div>
+          <span class="x">&#10005;</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:46px 180px 132px 1fr 24px;gap:8px;align-items:center">
+          <span class="logic" style="background:#f2f2ef;border-color:#dedeD8;color:#6b6b66">OR</span>
+          <span class="pick"><span class="mono" style="font-size:11.5px">note</span><span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span class="pick">为 NULL<span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span style="font-size:11px;color:#a8a8a1;font-style:italic;padding-left:4px">此运算符不需要值</span>
+          <span class="x">&#10005;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 排序 -->
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="sl">排序</span>
+        <div style="flex-grow:1"></div>
+        <span class="btn" style="height:23px;font-size:11.5px;padding:0 9px"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#4a4a45" stroke-width="1.8"><path d="M8 3.4v9.2M3.4 8h9.2"></path></svg>添加排序</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:grid;grid-template-columns:46px 180px 132px 1fr 24px;gap:8px;align-items:center">
+          <span style="font-size:11px;color:#a8a8a1;text-align:center">1</span>
+          <span class="pick"><span class="mono" style="font-size:11.5px">created_at</span><span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span class="pick">降序<span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span></span>
+          <span class="x">&#10005;</span>
+        </div>
+        <div style="display:grid;grid-template-columns:46px 180px 132px 1fr 24px;gap:8px;align-items:center">
+          <span style="font-size:11px;color:#a8a8a1;text-align:center">2</span>
+          <span class="pick"><span class="mono" style="font-size:11.5px">amount</span><span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span class="pick">降序<span style="color:#a8a8a1;font-size:9px">&#9660;</span></span>
+          <span></span>
+          <span class="x">&#10005;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 生成的 SQL -->
+    <div style="display:flex;flex-direction:column;gap:8px;flex-grow:1;min-height:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="sl">下推数据库执行的片段</span>
+        <div style="flex-grow:1"></div>
+        <span style="font-size:11px;color:#8a8a84">值以参数绑定，不拼进 SQL</span>
+      </div>
+      <div style="flex-grow:1;padding:11px 14px;background:#fafaf8;border:1px solid #e0e0da;border-radius:4px">
+        <div class="mono" style="font-size:12px;line-height:20px">
+          <div><span class="kw">WHERE</span> `status` = ?</div>
+          <div>&nbsp;&nbsp;<span class="kw">AND</span> `amount` &gt;= ?</div>
+          <div>&nbsp;&nbsp;<span class="kw">AND</span> `created_at` <span class="kw">BETWEEN</span> ? <span class="kw">AND</span> ?</div>
+          <div>&nbsp;&nbsp;<span class="kw">OR</span> `note` <span class="kw">IS NULL</span></div>
+          <div><span class="kw">ORDER BY</span> `created_at` <span class="kw">DESC</span>, `amount` <span class="kw">DESC</span></div>
+          <div style="height:8px"></div>
+          <div style="color:#a8a8a1">-- 参数：'PENDING', 1000.0000000000, '2026-08-01 00:00:00', '2026-08-31 23:59:59'</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:9px;padding:9px 12px;background:#f2f8f8;border:1px solid #c4dedd;border-radius:4px">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#0f6f70" stroke-width="1.5" style="flex-shrink:0;margin-top:1px"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 7.2v4M8 4.9v.7"></path></svg>
+      <span style="font-size:11px;color:#0f6f70;line-height:1.6">
+        筛选与排序<b>下推数据库执行</b>，不是在已加载的那一页里过滤。
+        这既是正确性问题——页内排序排的只是当前 200 行，结果是错的——也是性能问题：让索引发挥作用。
+      </span>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 20px;background:#f7f7f4;border-top:1px solid #e4e4e0;flex-shrink:0">
+    <span class="btn">清空条件</span>
+    <span class="btn">存为常用筛选</span>
+    <div style="flex-grow:1"></div>
+    <span class="btn">取消</span>
+    <span class="btn" style="background:#0f6f70;border-color:#0f6f70;color:#fff;font-weight:500">应用</span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

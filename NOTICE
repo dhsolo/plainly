@@ -1,0 +1,97 @@
+Plainly
+Copyright 2026 戴虎 (dhsolo)
+
+本产品依据 Apache License 2.0 授权，全文见 LICENSE。
+
+================================================================================
+第三方组件
+================================================================================
+
+本仓库的源码不包含任何第三方代码。以下组件由 Maven 在构建时取得；
+用 package.ps1 生成的 app-image 与 MSI 安装包**会把它们一起分发**，
+因此在这里逐一列明各自的许可。
+
+许可证名称取自各组件自己的 POM（部分声明在其父 POM 里），核对于 2026-09-10。
+升级依赖或新增依赖时请重新核对——许可证是会变的，MySQL 驱动就换过不止一次。
+
+--------------------------------------------------------------------------------
+数据库驱动
+--------------------------------------------------------------------------------
+
+mysql-connector-j 8.3.0
+    GNU General Public License v2, with Universal FOSS Exception v1.0
+
+    这一条值得单独说明。GPLv2 本身要求衍生作品同样以 GPL 分发，
+    而 Universal FOSS Exception 允许把它与「认可名单上的开源许可证」下的软件
+    组合分发——Apache-2.0 在那份名单上，所以本项目以 Apache-2.0 开源时没有障碍。
+
+    反过来：若有人把本项目改成闭源产品分发，这条豁免不再适用，
+    需要另行取得 Oracle 的 MySQL 商业授权，或者去掉 MySQL 驱动。
+
+postgresql 42.6.0                     BSD-2-Clause
+ojdbc8 21.23.0.0                      Oracle Free Use Terms and Conditions (FUTC)
+mssql-jdbc 12.6.1.jre11               MIT License
+DmJdbcDriver18 8.1.3.140 (达梦)        Apache License 2.0
+kingbase8 9.0.1 (人大金仓)             Apache License 2.0
+opengauss-jdbc 6.0.3-og (GaussDB)     BSD-2-Clause
+
+    必须是 -og 后缀那个变体。不带后缀的把类放在 org.postgresql 包下，
+    注册的驱动类也叫 org.postgresql.Driver——和真正的 PostgreSQL 驱动同名。
+    两个 jar 一起分发时，用哪个取决于谁先被加载，而且不会有任何报错。
+
+oceanbase-client 2.4.19               LGPL-2.1
+
+    和 JNA 一样：LGPL 要求使用者能够替换该库。本项目将它作为独立的 jar 分发，
+    替换掉即可，未做静态链接或代码内联。
+sqlite-jdbc 3.42.0.0                  Apache License 2.0
+h2 2.1.214                            MPL 2.0
+mongodb-driver-sync / -core 4.8.2     Apache License 2.0
+bson / bson-record-codec 4.8.2        Apache License 2.0
+
+--------------------------------------------------------------------------------
+界面
+--------------------------------------------------------------------------------
+
+OpenJFX (javafx-base / -graphics / -controls) 21
+    GPL v2 with Classpath Exception
+
+    Classpath Exception 是关键：它允许独立模块与之链接并按自己的许可分发，
+    不会因此变成 GPL。本项目把 JavaFX 作为普通依赖使用，未修改其源码。
+
+RichTextFX 0.11.5                     BSD 2-Clause
+ReactFX 2.0-M5                        BSD 2-Clause
+UndoFX 2.1.1                          BSD 2-Clause
+Flowless 0.7.4                        BSD 2-Clause
+WellBehavedFX 0.3.3                   BSD 2-Clause
+
+--------------------------------------------------------------------------------
+其他
+--------------------------------------------------------------------------------
+
+JNA / JNA Platform 5.14.0             LGPL-2.1-or-later
+
+    LGPL 要求使用者能够替换该库。本项目将它作为独立的 jar 分发
+    （app-image 的 app 目录下），替换掉即可，未做静态链接或代码内联。
+    它用于 Windows DPAPI 的凭据加解密。
+
+Apache POI 5.2.5 (poi / poi-ooxml / poi-ooxml-lite)   Apache License 2.0
+XMLBeans 5.2.0                        Apache License 2.0
+Apache Commons (codec / collections4 / compress / io / math3)   Apache License 2.0
+SparseBitSet 1.3                      Apache License 2.0
+curvesapi 1.08                        BSD License
+log4j-api 2.21.1                      Apache License 2.0
+protobuf-java 3.25.1                  BSD-3-Clause
+checker-qual 3.31.0                   MIT License
+JSch 0.2.17                           Revised BSD
+jakarta.mail / jakarta.activation 2.0.1               EPL 2.0
+
+================================================================================
+商标
+================================================================================
+
+MySQL、Oracle 是 Oracle Corporation 的商标；PostgreSQL 是 PostgreSQL 社区的商标；
+MongoDB 是 MongoDB, Inc. 的商标；Redis 是 Redis Ltd. 的商标；
+Microsoft SQL Server 是 Microsoft 的商标；达梦是武汉达梦数据库股份有限公司的商标。
+
+本项目与上述任何一家均无隶属或背书关系。这些名称在此仅用于说明本工具
+能连接哪些数据库。
