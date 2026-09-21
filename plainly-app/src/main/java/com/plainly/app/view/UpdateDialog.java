@@ -90,7 +90,10 @@ public class UpdateDialog {
 
     private VBox buildBody() {
         repoField.setText(settings.repoRaw());
-        repoField.setPromptText("owner/repo，或整条 https://github.com/owner/repo");
+        // 提示语里摆出默认地址，这样「留空会去查哪儿」是看得见的，
+        // 而不是一个要看文档才知道的隐藏行为
+        repoField.setPromptText("留空 = " + UpdateSettings.DEFAULT_REPO
+                + "（也可填 owner/repo 或整条 GitHub 地址）");
         HBox.setHgrow(repoField, Priority.ALWAYS);
 
         autoCheck.setSelected(settings.enabled());
@@ -104,15 +107,16 @@ public class UpdateDialog {
         });
 
         /*
-         * 这段话不是免责声明，是这个功能的边界，用户有权在打开开关之前知道。
+         * 这段话不是免责声明，是这个功能的边界。
          *
-         * README 的「安全」一节承诺过：不做任何遥测，唯一的网络行为是连你自己配的库。
-         * 一次版本检查也是一次出站请求——它会让发布方知道这台机器的 IP。
-         * 所以出厂是关的，而且这里把「打开之后会发生什么」讲清楚。
+         * 这一项出厂是开的，所以用户多半不是"打开它"而是"发现它开着"——
+         * 那就更该把已经在发生的事说清楚，而不是等他自己去翻文档。
+         * 关掉之后是真的一个包都不发（见 MainWindow.checkForUpdates，
+         * 它在走到网络之前就返回），不是发出去再把结果丢掉。
          */
         Label privacy = UiUtils.label(
-                "关着的时候不发生任何网络请求。打开之后，每次启动会向 GitHub 请求一次"
-                + "版本信息——对方因此能看到这台机器的 IP。", "hint");
+                "这一项默认开着：每次启动会向 GitHub 请求一次版本信息，"
+                + "对方因此能看到这台机器的 IP。关掉之后不发生任何网络请求。", "hint");
         privacy.setWrapText(true);
 
         Label scope = UiUtils.label(

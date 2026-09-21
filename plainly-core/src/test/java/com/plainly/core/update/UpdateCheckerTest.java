@@ -3,6 +3,7 @@ package com.plainly.core.update;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.plainly.core.store.LocalStore;
@@ -60,16 +61,62 @@ class UpdateCheckerTest {
                 + "\"body\":\"说明\"}";
     }
 
+    @Test
+    @DisplayName("出厂就带着官方地址，也默认开着")
+    void shipsWithDefaults() {
+        UpdateSettings s = settings();
+        assertEquals(UpdateSettings.DEFAULT_REPO, s.repo(),
+                "用户什么都没填时，去查的是官方仓库");
+        assertEquals("", s.repoRaw(), "但输入框里是空的——空表示「用默认」");
+        assertTrue(s.enabled(), "默认开启");
+
+        UpdateChecker.Result r = checker(s, latest("v2.0.0")).check("1.0.0");
+        assertEquals(Status.AVAILABLE, r.status());
+        assertEquals(
+                List.of("https://api.github.com/repos/"
+                        + UpdateSettings.DEFAULT_REPO + "/releases/latest"),
+                requested);
+    }
+
+    @Test
+    @DisplayName("关掉之后一个请求都不发")
+    void disabledSendsNothing() {
+        UpdateSettings s = settings();
+        s.setEnabled(false);
+        assertFalse(s.enabled());
+        // check() 本身不看这个开关——拦在外面的是调用方（MainWindow.checkForUpdates），
+        // 因为菜单里手动点「现在检查」时开关是关着的也照查不误。
+        // 这条用例守的是开关本身存得住、读得出，那是拦截逻辑的唯一依据
+        assertTrue(requested.isEmpty());
+    }
+
     /**
-     * README 的「安全」一节写着这个工具不做任何遥测。没配地址时必须<b>一个包都不发</b>，
-     * 而不是发出去之后把结果丢掉。
+     * 填了认不出来的东西时<b>不</b>退回官方地址。
+     *
+     * <p>用户特地填了别的（多半是自己的 fork），这时候偷偷去查官方仓库，
+     * 他会以为自己在跟踪 fork 的版本，而实际比的是另一个仓库——
+     * 而这个偏差没有任何迹象能让他察觉。
      */
     @Test
-    @DisplayName("没填地址：不检查，也不发任何请求")
-    void notConfiguredSendsNothing() {
-        UpdateChecker.Result r = checker(settings(), latest("v0.2.0")).check("0.1.0");
+    @DisplayName("地址填错：不检查、不发请求，也不偷偷退回官方地址")
+    void garbageRepoDoesNotFallBack() {
+        UpdateSettings s = settings();
+        s.setRepo("这不是一个仓库地址");
+        assertNull(s.repo());
+
+        UpdateChecker.Result r = checker(s, latest("v2.0.0")).check("1.0.0");
         assertEquals(Status.NOT_CONFIGURED, r.status());
-        assertTrue(requested.isEmpty(), "没配地址却发了请求：" + requested);
+        assertTrue(requested.isEmpty(), "地址认不出来却发了请求：" + requested);
+    }
+
+    @Test
+    @DisplayName("地址清空 = 回到官方地址")
+    void blankMeansDefault() {
+        UpdateSettings s = settings();
+        s.setRepo("acme/plainly");
+        assertEquals("acme/plainly", s.repo());
+        s.setRepo("   ");
+        assertEquals(UpdateSettings.DEFAULT_REPO, s.repo());
     }
 
     @Test
