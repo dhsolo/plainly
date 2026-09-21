@@ -214,8 +214,19 @@ public final class TaskRunner {
         String wanted = args[0];
         try (com.plainly.core.store.LocalStore store = new com.plainly.core.store.LocalStore()) {
             TaskStore tasks = new TaskStore(store);
+            /*
+             * 走 forCurrentPlatform()，不要写死 DpapiCredentialStore。
+             *
+             * 写死的后果分两种，都不报「这是平台问题」：
+             *   · 非 Windows 上，DPAPI 根本没有，这一行直接抛，整个命令行入口起不来；
+             *   · Windows 上缺 JNA 时也一样——而界面那边走的是 forCurrentPlatform()，
+             *     会安静退回兜底实现。于是同一台机器上，界面读得出口令、
+             *     计划任务读不出，两边看起来毫无关联。
+             *
+             * 口令是用哪个实现加密的，就得用哪个实现解；选择权只能在一个地方。
+             */
             ConnectionRegistry registry = new ConnectionRegistry(store,
-                    new com.plainly.core.store.DpapiCredentialStore());
+                    com.plainly.core.store.CredentialStore.forCurrentPlatform());
             ScheduledTask task = tasks.listAll().stream()
                     .filter(t -> t.name().equals(wanted))
                     .findFirst()
