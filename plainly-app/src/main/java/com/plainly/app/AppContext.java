@@ -70,6 +70,36 @@ public class AppContext implements AutoCloseable {
         queryService.submit(() -> Retention.sweep(localStore));
     }
 
+    /**
+     * 拿浏览器打开一个地址。
+     *
+     * <h2>为什么存成 Consumer 而不是 HostServices</h2>
+     * 真正能打开浏览器的是 JavaFX 的 {@code HostServices}，而它只能从
+     * {@code Application} 实例上取。但这个类到目前为止<b>一个 JavaFX 类都不依赖</b>，
+     * 那不是巧合——它装的是本机配置库、连接和后台执行器，全是能脱开界面测的东西。
+     * 为了一个「打开链接」把整个 javafx.application 拉进来，等于把这条界限抹掉。
+     *
+     * <p>默认什么都不做：从测试或探针里构造 AppContext 时没有 HostServices，
+     * 这时候点「去下载」应当安静地没反应，而不是空指针。
+     */
+    private java.util.function.Consumer<String> urlOpener = url -> { };
+
+    /** 由 {@code PlainlyApp} 在启动时接上真正的实现。 */
+    public void setUrlOpener(java.util.function.Consumer<String> opener) {
+        this.urlOpener = opener == null ? url -> { } : opener;
+    }
+
+    public void openUrl(String url) {
+        if (url != null && !url.isBlank()) {
+            urlOpener.accept(url);
+        }
+    }
+
+    /** 更新检查的设置：是否检查、去哪儿查、跳过了哪一版。 */
+    public com.plainly.core.update.UpdateSettings updateSettings() {
+        return new com.plainly.core.update.UpdateSettings(uiState);
+    }
+
     public TaskStore taskStore() {
         return taskStore;
     }

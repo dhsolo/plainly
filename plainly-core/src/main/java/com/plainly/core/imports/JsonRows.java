@@ -119,6 +119,25 @@ public final class JsonRows {
     }
 
     /**
+     * 同上，但读一段已经在内存里的 JSON。
+     *
+     * <p>为更新检查加的：那边拿到的是一次 HTTP 响应，不是文件。为它单写一个
+     * JSON 读取器没有道理——要做的事和这里一模一样（顶层对象、值全部当文本），
+     * 而多一份解析代码就是多一处会和这里长得不一样的地方。
+     *
+     * <p>不落盘再读的理由也很直接：为了解析一段几 KB 的响应而在用户硬盘上
+     * 建一个临时文件，还得管它什么时候删。
+     */
+    public static void forEachObject(String json, Consumer<Map<String, String>> consumer) {
+        try (Reader reader = new java.io.StringReader(json)) {
+            new Parser(reader).run(consumer);
+        } catch (IOException e) {
+            // StringReader 不会真的抛，兜住只是为了签名一致
+            throw new DbException("解析 JSON 失败：" + e.getMessage(), e);
+        }
+    }
+
+    /**
      * 一个够用的 JSON 读取器。
      *
      * <p>为什么不引第三方库：这个模块目前零 JSON 依赖，而要做的事只有

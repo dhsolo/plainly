@@ -149,22 +149,23 @@ public class AboutDialog {
         });
 
         /*
-         * 检查更新先留着不接。
+         * 「检查更新」现在接上了，见 UpdateDialog。
          *
-         * 仓库现在一个 Release 都没有，GitHub 的 latest 端点返回 404——
-         * 现在把它接上，它唯一能做的就是静默失败。而这种「永远走不到成功分支」
-         * 的代码最容易腐坏：等真发了第一个版本，谁也不确定它还对不对。
-         *
-         * 按钮摆在这儿并标明原因，比藏起来好：用户看得见这件事有人想过。
+         * 原来这里是个禁用的按钮，理由是仓库还没有任何 Release、接上去只能静默失败。
+         * 现在换了个做法：发布地址由用户自己填，没填就明说没填——
+         * 那样「还没有发布过」和「没配地址」在界面上是两句不同的话，
+         * 而不是同一个什么都不发生的按钮。
          */
         Button update = UiUtils.toolButton("检查更新", null);
-        update.setDisable(true);
-        Label why = UiUtils.label("（还没有发布过版本，等第一个 Release 出来再接）", "hint");
+        update.setOnAction(e -> {
+            stage.close();
+            new UpdateDialog(context).show(stage.getOwner());
+        });
 
         Button close = UiUtils.toolButton("关闭", null, "primary");
         close.setOnAction(e -> stage.close());
 
-        HBox foot = UiUtils.row(8, copy, update, why, UiUtils.hSpacer(), close);
+        HBox foot = UiUtils.row(8, copy, update, UiUtils.hSpacer(), close);
         foot.getStyleClass().add("dialog-foot");
         foot.setAlignment(Pos.CENTER_LEFT);
         return foot;

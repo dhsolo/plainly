@@ -66,6 +66,7 @@ public class MainWindow extends BorderPane {
     private final Label statusMessage = UiUtils.label("");
     private final Label statusStore = UiUtils.label("");
     private final SplitPane split;
+    private final UpdateBar updateBar = new UpdateBar();
 
     public MainWindow(AppContext context) {
         this.context = context;
@@ -87,7 +88,11 @@ public class MainWindow extends BorderPane {
         // 顶上不再单独放一条「Plainly · 数据库管理工具」的品牌行：
         // 系统标题栏已经写着 Plainly，同一个词上下挨着出现两遍。
         // 去掉之后还顺手让出 34 像素——那是整整一行表格数据
-        setTop(buildToolbar());
+        //
+        // 更新提示条贴在工具栏下面，平时不占位置（setManaged(false)）。
+        // 放在这里而不是浮在网格上：被浮层盖住的那一行数据不会有任何提示，
+        // 用户会以为表里就这么多
+        setTop(new javafx.scene.layout.VBox(buildToolbar(), updateBar));
         setCenter(split);
         setBottom(buildStatusBar());
 
@@ -108,6 +113,55 @@ public class MainWindow extends BorderPane {
             // 那多半是误操作，存下来会让下次启动打开一个看着像坏了的界面
             context.uiState().putDouble(UiState.SIDEBAR_DIVIDER, positions[0]);
         }
+    }
+
+    /**
+     * 启动时查一次有没有新版本。
+     *
+     * <h2>关着的时候一个请求都不发</h2>
+     * 不是发出去再把结果丢掉，是根本不走到网络那一步。README 的「安全」一节
+     * 承诺过这个工具唯一的网络行为是连用户自己配的库，出厂默认必须守住这句话。
+     *
+     * <h2>查不成为什么只写状态栏，不弹框</h2>
+     * 用户此刻是来查表的。为「版本检查没查成」弹一个要他处理掉的框，
+     * 是把工具自己的事摆到他的事前面。
+     *
+     * <p>但也不能<b>完全</b>不说——这个项目吃过那个亏：{@code listTriggers}
+     * 把异常吞掉返回空表，于是「读不到」和「本来就没有」在界面上长得一模一样。
+     * 这里同理：一个打开了检查开关的用户，如果地址填错了或者 GitHub 连不上，
+     * 全程静默的话他会一直以为「一直没有新版本」。所以查不成就往状态栏写一句，
+     * 看得见、但不拦路；想知道细节的，菜单里「检查更新…」会把整件事说全。
+     */
+    public void checkForUpdates() {
+        com.plainly.core.update.UpdateSettings settings = context.updateSettings();
+        if (!settings.enabled() || settings.repo() == null) {
+            return;
+        }
+        String current = AboutDialog.version();
+        com.plainly.core.update.UpdateChecker checker =
+                new com.plainly.core.update.UpdateChecker(settings,
+                        com.plainly.core.update.UpdateChecker.httpFetcher(current));
+
+        context.queryService().submit(() -> checker.check(current))
+                .whenComplete((r, error) -> javafx.application.Platform.runLater(() -> {
+                    if (error != null) {
+                        setStatus("版本检查没跑起来：" + UiUtils.rootMessage(error));
+                        return;
+                    }
+                    switch (r.status()) {
+                        case AVAILABLE -> {
+                            // 「跳过此版本」只挡这条被动提示。菜单里手动查时照说不误
+                            if (settings.isSkipped(r.release().version())) {
+                                return;
+                            }
+                            updateBar.show(r.release(), current,
+                                    () -> context.openUrl(r.release().pageUrl()),
+                                    () -> settings.skip(r.release().version()));
+                        }
+                        case FAILED -> setStatus(r.message());
+                        default -> { }
+                    }
+                }));
     }
 
     /**
@@ -203,6 +257,10 @@ public class MainWindow extends BorderPane {
                         () -> new SnippetDialog(context).show(window())),
                 themeItem,
                 new SeparatorMenuItem(),
+                // 挨着「关于」放：两项回答的是同一类问题——我在用哪一版、
+                // 是不是该换一版。用户翻菜单找版本信息时会一眼看到它
+                UiUtils.menuItem("检查更新…", Icons.refresh(Icons.MUTED, 12),
+                        () -> new UpdateDialog(context).show(window())),
                 // 「关于」放这一组的最后：出问题时第一件要确认的是跑的哪一版，
                 // 而用户找这种信息的第一反应就是翻菜单
                 UiUtils.menuItem("关于 Plainly…", Icons.file(Icons.MUTED, 12),

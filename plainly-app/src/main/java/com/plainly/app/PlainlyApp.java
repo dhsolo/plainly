@@ -26,6 +26,10 @@ public class PlainlyApp extends Application {
             return;
         }
 
+        // 「去下载」要靠它打开浏览器。HostServices 只能从 Application 实例上取，
+        // 所以在这儿接进去——AppContext 自己不依赖 JavaFX，理由见那边的注释
+        context.setUrlOpener(getHostServices()::showDocument);
+
         MainWindow root = new MainWindow(context);
         Scene scene = new Scene(root);
         scene.getStylesheets().add(
@@ -70,6 +74,11 @@ public class PlainlyApp extends Application {
 
         // 恢复的询问要等窗口出来——弹窗得有个 owner
         root.offerSessionRestore();
+
+        // 版本检查放在最后，而且整个过程在后台：它是这里唯一一件
+        // 「用户没要求、但可能占用网络」的事，不该排在恢复现场前面。
+        // 没打开检查开关时这一句立刻返回，不发任何请求
+        root.checkForUpdates();
     }
 
     @Override

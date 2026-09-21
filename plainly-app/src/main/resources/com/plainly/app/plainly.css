@@ -393,6 +393,29 @@
     -fx-font-size: 11.5px;
 }
 
+/*
+ * 「有新版本」的提示条。
+ *
+ * 用 accent 而不是 amber：琥珀色在这套界面里说的是「有东西悬着，你得处理」
+ * （未提交的事务就是那个色），而有个新版本可以装并不属于那一类。
+ * 两件事用同一个颜色，真正要紧的那件就被稀释了。
+ *
+ * 颜色全部走变量，所以跟着亮/暗主题走——这一条和连接的标记色不一样：
+ * 那个是语义（红=生产），这个只是装饰。
+ */
+.update-bar {
+    -fx-background-color: -sx-accent-bg;
+    -fx-border-color: transparent transparent -sx-border-light transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 6 10 6 10;
+}
+
+.update-headline {
+    -fx-text-fill: -sx-accent-dark;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+
 /* ---------------------------------------------------------------- 侧栏 */
 
 /*
