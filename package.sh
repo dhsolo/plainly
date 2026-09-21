@@ -231,12 +231,27 @@ common=(
 )
 
 mkdir -p "$out_dir"
+
+# 只清掉上一次的 app-image 目录，**不要**清整个 dist/。
+#
+# jpackage 见到目标目录已存在就直接报
+# "Application destination directory ... already exists" 并退出，
+# 所以非清不可。但 package.ps1 那种「整个 dist 删掉重建」在这里会出事：
+# 同一个平台要跑两遍（deb 一遍、rpm 一遍），第二遍一开始就会把第一遍
+# 刚打好的 deb 删掉——而它已经是要发布的产物了。
+if [ "$platform" = linux ]; then
+    app_image="$out_dir/$app_name"
+else
+    app_image="$out_dir/$app_name.app"
+fi
+rm -rf "$app_image"
+
 echo '[3/4] jpackage app-image…'
 jpackage "${common[@]}" --type app-image
 if [ "$platform" = linux ]; then
-    echo "  已生成：$out_dir/$app_name/bin/$app_name"
+    echo "  已生成：$app_image/bin/$app_name"
 else
-    echo "  已生成：$out_dir/$app_name.app"
+    echo "  已生成：$app_image"
 fi
 
 if [ "$want_installer" -eq 0 ]; then
