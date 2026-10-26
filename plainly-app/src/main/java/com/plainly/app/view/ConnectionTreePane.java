@@ -75,6 +75,8 @@ public class ConnectionTreePane extends VBox {
 
         tree.setShowRoot(false);
         tree.setCellFactory(v -> new NodeCell());
+        // Ctrl / Shift 多选表，右键对选中的一批一起操作（见 buildBatchMenu）
+        tree.getSelectionModel().setSelectionMode(javafx.scene.control.SelectionMode.MULTIPLE);
         /*
          * 告诉全局复制：树上的一行该复制成什么。
          *
@@ -345,6 +347,33 @@ public class ConnectionTreePane extends VBox {
         return new TreeItem<>(null);
     }
 
+    /**
+     * 重读一个库下面的对象，展开状态原样保留。
+     *
+     * <p>原来的做法是把孩子退回占位节点再收起——用户在库上点一下「刷新」，
+     * 整个库就折起来了，展开之后「表」分组（超过 40 张时默认折着）还得再点一次。
+     * 清空、删了几张表之后刷新看看结果，是很常见的连续动作，每次都要重新点开两层。
+     *
+     * <p>这里记下哪些分组原来是展开的，重读完再展开回去，库本身也保持展开。
+     */
+    private void reloadSchema(TreeItem<NodeData> schemaItem) {
+        java.util.Set<ObjectKind> open = java.util.EnumSet.noneOf(ObjectKind.class);
+        for (TreeItem<NodeData> child : schemaItem.getChildren()) {
+            if (child.getValue() instanceof NodeData.GroupNode g && child.isExpanded()) {
+                open.add(g.kind());
+            }
+        }
+        openGroups.put(schemaItem, open);
+        schemaItem.getChildren().setAll(placeholder());
+        // 先收再展开才会触发重读（见 schemaItem 上的 expandedProperty 监听）
+        schemaItem.setExpanded(false);
+        schemaItem.setExpanded(true);
+    }
+
+    /** 重读前展开着的分组，由 {@link #reloadSchema} 记下、{@code loadObjects} 用掉。 */
+    private final java.util.Map<TreeItem<NodeData>, java.util.Set<ObjectKind>> openGroups =
+            new java.util.HashMap<>();
+
     private boolean isPlaceholder(TreeItem<NodeData> item) {
         return item.getChildren().size() == 1 && item.getChildren().get(0).getValue() == null;
     }
@@ -444,6 +473,15 @@ public class ConnectionTreePane extends VBox {
                     addGroup(item, config, schema, tables, ObjectKind.MATERIALIZED_VIEW);
                     addGroup(item, config, schema, tables, ObjectKind.SEQUENCE);
                     addGroup(item, config, schema, tables, ObjectKind.EVENT);
+                    java.util.Set<ObjectKind> open = openGroups.remove(item);
+                    if (open != null) {
+                        for (TreeItem<NodeData> group : item.getChildren()) {
+                            if (group.getValue() instanceof NodeData.GroupNode g
+                                    && open.contains(g.kind())) {
+                                group.setExpanded(true);
+                            }
+                        }
+                    }
                     // 空库就让孩子空着——不能放回占位节点：展开它又会触发一次加载，
                     // 加载完还是空，如此往复，转成死循环
                     item.setExpanded(true);
@@ -641,9 +679,7 @@ public class ConnectionTreePane extends VBox {
         ObjectEditorDialog dialog = new ObjectEditorDialog(context, session,
                 schemaName, kind, null);
         dialog.setOnApplied(() -> {
-            item.getChildren().setAll(placeholder());
-            item.setExpanded(false);
-            item.setExpanded(true);
+            reloadSchema(item);
             statusSink.accept("已新建" + kind.label());
         });
         dialog.show(getScene().getWindow());
@@ -662,9 +698,7 @@ public class ConnectionTreePane extends VBox {
             // 新表得在树上出现：把这个库的孩子退回占位节点，下次展开重新读
             TreeItem<NodeData> schemaItem = selectedSchemaItem();
             if (schemaItem != null) {
-                schemaItem.getChildren().setAll(placeholder());
-                schemaItem.setExpanded(false);
-                schemaItem.setExpanded(true);
+                reloadSchema(schemaItem);
             }
             statusSink.accept("已复制 " + node.table().name());
         });
@@ -714,9 +748,7 @@ public class ConnectionTreePane extends VBox {
         }
         NewTableDialog dialog = new NewTableDialog(context, session, schemaName);
         dialog.setOnCreated(() -> {
-            item.getChildren().setAll(placeholder());
-            item.setExpanded(false);
-            item.setExpanded(true);
+            reloadSchema(item);
             statusSink.accept("已在 " + schemaName + " 建表");
         });
         dialog.showAndWait(getScene() == null ? null : getScene().getWindow());
@@ -865,6 +897,147 @@ public class ConnectionTreePane extends VBox {
                                 }
                             });
                 }));
+    }
+
+    // ------------------------------------------------------------------ 批量
+
+    /** 当前选中的表节点，按选中顺序。选区里的连接、库、分组不算。 */
+    private List<TreeItem<NodeData>> selectedTableItems() {
+        return tree.getSelectionModel().getSelectedItems().stream()
+                .filter(i -> i != null && i.getValue() instanceof NodeData.TableNode)
+                .toList();
+    }
+
+    /** 一张张打开。序列、事件没有行，跳过——批量时给每个弹一个定义框只会刷屏。 */
+    private void openTables(List<NodeData.TableNode> nodes) {
+        for (NodeData.TableNode node : nodes) {
+            DbSession session = context.sessionFor(node.config().id());
+            if (session != null && node.table().kind().hasRows()) {
+                onOpenTable.accept(session, node.table());
+            }
+        }
+    }
+
+    /** 一批表各自的结果。 */
+    private record BatchResult(List<TreeItem<NodeData>> done, List<String> failed,
+                               Throwable lastError) {
+    }
+
+    /**
+     * 批量清空或删除。调用方保证这批表在同一条连接上、全是普通表。
+     *
+     * <p>确认只问一次，但和单表一样先查外键，把会挡路的表点出来。删除时，
+     * 选区内部的引用不算挡路：整批都会被删掉，只是先后顺序的问题。
+     *
+     * <p>执行是一轮轮重试：子表排在父表后面时，第一轮删父表会被外键拒绝，
+     * 等子表删掉后下一轮就过了。某一轮一张都没成功才停，剩下的报给用户。
+     */
+    private void destroyTables(List<TreeItem<NodeData>> items, boolean drop) {
+        List<NodeData.TableNode> nodes = items.stream()
+                .map(i -> (NodeData.TableNode) i.getValue()).toList();
+        DbSession session = context.sessionFor(nodes.get(0).config().id());
+        if (session == null) {
+            return;
+        }
+        java.util.Set<String> chosen = new java.util.HashSet<>();
+        nodes.forEach(t -> chosen.add(t.table().name()));
+        String verb = drop ? "删除" : "清空";
+
+        context.queryService().submit(() -> {
+            java.util.LinkedHashSet<String> from = new java.util.LinkedHashSet<>();
+            for (NodeData.TableNode t : nodes) {
+                for (var key : session.connection().listReferencingKeys(t.schema(), t.table().name())) {
+                    if (!drop || !chosen.contains(key.table())) {
+                        from.add(key.table());
+                    }
+                }
+            }
+            return from;
+        }).whenComplete((from, error) -> Platform.runLater(() -> {
+            StringBuilder msg = new StringBuilder("下面 ").append(nodes.size()).append(" 张表")
+                    .append(drop ? "连同里面的全部数据会被删掉，这些 DDL 撤不回来："
+                            : "里的数据会被全部清掉，表结构保留：")
+                    .append("\n\n").append(abbreviate(nodes.stream()
+                            .map(t -> t.schema() + "." + t.table().name()).toList()));
+            if (!drop) {
+                msg.append("\n\n").append(session.connection().dialect().truncateNote());
+            }
+            if (error == null && from != null && !from.isEmpty()) {
+                msg.append("\n\n注意：").append(abbreviate(List.copyOf(from)))
+                        .append(" 用外键引用着").append(drop ? "其中的表。数据库多半会拒绝，或者连带把那些外键也删掉。"
+                                : "其中的表，多数数据库会因此直接拒绝清空。");
+            }
+            if (!UiUtils.confirm(getScene().getWindow(), verb + " " + nodes.size() + " 张表",
+                    msg.toString())) {
+                return;
+            }
+            statusSink.accept("正在" + verb + " " + nodes.size() + " 张表…");
+            context.queryService().submit(() -> {
+                List<TreeItem<NodeData>> pending = new java.util.ArrayList<>(items);
+                List<TreeItem<NodeData>> done = new java.util.ArrayList<>();
+                Throwable last = null;
+                boolean progressed = true;
+                while (!pending.isEmpty() && progressed) {
+                    progressed = false;
+                    for (java.util.Iterator<TreeItem<NodeData>> it = pending.iterator(); it.hasNext(); ) {
+                        TreeItem<NodeData> item = it.next();
+                        NodeData.TableNode t = (NodeData.TableNode) item.getValue();
+                        var dialect = session.connection().dialect();
+                        String ddl = drop ? dialect.dropTableDdl(t.schema(), t.table().name())
+                                : dialect.truncateTableDdl(t.schema(), t.table().name());
+                        try {
+                            session.executeDdl(t.schema(), List.of(ddl));
+                        } catch (RuntimeException e) {
+                            last = e;
+                            continue;
+                        }
+                        done.add(item);
+                        it.remove();
+                        progressed = true;
+                    }
+                }
+                List<String> failed = pending.stream()
+                        .map(i -> ((NodeData.TableNode) i.getValue()).table().name()).toList();
+                return new BatchResult(done, failed, last);
+            }).whenComplete((result, fatal) -> Platform.runLater(() -> {
+                if (fatal != null) {
+                    UiUtils.showError(getScene() == null ? null : getScene().getWindow(),
+                            verb + "失败", fatal);
+                    statusSink.accept(verb + "失败");
+                    return;
+                }
+                if (drop && !result.done().isEmpty()) {
+                    session.invalidate();
+                    for (TreeItem<NodeData> node : result.done()) {
+                        if (node.getParent() != null) {
+                            node.getParent().getChildren().remove(node);
+                        }
+                    }
+                }
+                tree.refresh();
+                if (result.failed().isEmpty()) {
+                    statusSink.accept("已" + verb + " " + result.done().size() + " 张表");
+                    return;
+                }
+                statusSink.accept("已" + verb + " " + result.done().size() + " 张，"
+                        + result.failed().size() + " 张失败");
+                UiUtils.showError(getScene() == null ? null : getScene().getWindow(),
+                        "有 " + result.failed().size() + " 张表没能" + verb,
+                        new com.plainly.driver.DbException(abbreviate(result.failed())
+                                + System.lineSeparator() + System.lineSeparator()
+                                + "最后一次报错：" + result.lastError().getMessage(),
+                                result.lastError()));
+            }));
+        }));
+    }
+
+    /** 名单太长时只列前几个：确认框撑满一屏，用户反而看不到底下的按钮。 */
+    private static String abbreviate(List<String> names) {
+        int shown = 12;
+        if (names.size() <= shown) {
+            return String.join("、", names);
+        }
+        return String.join("、", names.subList(0, shown)) + " 等 " + names.size() + " 张";
     }
 
     /**
@@ -1054,6 +1227,19 @@ public class ConnectionTreePane extends VBox {
     // ------------------------------------------------------------------ 单元格
 
     private class NodeCell extends TreeCell<NodeData> {
+
+        /**
+         * 菜单在右键那一刻现做。
+         *
+         * <p>原来在 updateItem 里做：那时只看得见这一行。可菜单要按「现在选中了几张表」
+         * 来定，而选中变化不会让 updateItem 重跑——在 updateItem 里做出来的永远是单表菜单。
+         * 用事件过滤器是因为它先于 Control 弹菜单的那个处理器执行。
+         */
+        NodeCell() {
+            addEventFilter(javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED, e ->
+                    setContextMenu(isEmpty() || getItem() == null ? null : buildMenu(getItem())));
+        }
+
         @Override
         protected void updateItem(NodeData item, boolean empty) {
             super.updateItem(item, empty);
@@ -1069,7 +1255,6 @@ public class ConnectionTreePane extends VBox {
             }
             setText(null);
             setGraphic(render(item));
-            setContextMenu(buildMenu(item));
             markRowKind(item);
         }
 
@@ -1189,7 +1374,7 @@ public class ConnectionTreePane extends VBox {
                 if (hasRows) {
                     Label count = UiUtils.label(UiUtils.approxCount(rows), "tree-count");
                     // 必须说明这是估算：不说，就会有人拿它去对账。
-                    // InnoDB 上它是采样估出来的，几成的偏差很常见
+                    // 偏差大到不能用的那几家（MySQL）方言里直接不给，走不到这里
                     Tooltip.install(count, new Tooltip(
                             "约 " + UiUtils.groupDigits(rows) + " 行（来自统计信息，非精确值）"));
                     box.getChildren().add(count);
@@ -1311,6 +1496,13 @@ public class ConnectionTreePane extends VBox {
                 menu.getItems().addAll(new SeparatorMenuItem(), delete);
 
             } else if (data instanceof NodeData.TableNode n) {
+                // 右键点在多选的一批表里：菜单作用于整批。
+                // 点在选区外的那一行时，TreeView 已经把选区改成只有它，走下面的单表菜单
+                List<TreeItem<NodeData>> batch = selectedTableItems();
+                if (batch.size() > 1 && batch.contains(getTreeItem())) {
+                    buildBatchMenu(menu, batch);
+                    return menu;
+                }
                 boolean structural = structural(n.config());
                 // 序列和事件没有行，打不开数据网格。它们只有一条定义可看——
                 // 摆一个「打开表」在那里，点下去只会得到一个空网格或一条报错
@@ -1372,8 +1564,7 @@ public class ConnectionTreePane extends VBox {
                             if (s != null) {
                                 s.invalidate();
                             }
-                            getTreeItem().getChildren().setAll(placeholder());
-                            getTreeItem().setExpanded(false);
+                            reloadSchema(getTreeItem());
                         });
                 if (!structural(n.config())) {
                     // 建表 / 建视图 / 建触发器 / 备份，在键值库上全都没有对应的东西。
@@ -1400,8 +1591,7 @@ public class ConnectionTreePane extends VBox {
                     if (s != null) {
                         s.invalidate();
                     }
-                    getTreeItem().getChildren().setAll(placeholder());
-                    getTreeItem().setExpanded(false);
+                    reloadSchema(getTreeItem());
                 });
                 MenuItem importWizard = item("导入向导…", Icons.imports(Icons.NEUTRAL, 12), false,
                         e -> importInto(n.config(), n.schema().name()));
@@ -1414,6 +1604,42 @@ public class ConnectionTreePane extends VBox {
                         new SeparatorMenuItem(), refresh);
             }
             return menu.getItems().isEmpty() ? null : menu;
+        }
+
+        /**
+         * 多张表一起选中时的菜单。
+         *
+         * <p>清空和删除只在「同一条连接上、全是普通表」时给：确认框里那句
+         * {@code truncateNote} 是按某一家写的，跨连接时说不准；视图、序列混在里面时，
+         * 同一个「删除」对它们是不同的语句，不如让用户分开做。
+         */
+        private void buildBatchMenu(ContextMenu menu, List<TreeItem<NodeData>> batch) {
+            List<NodeData.TableNode> nodes = batch.stream()
+                    .map(i -> (NodeData.TableNode) i.getValue()).toList();
+            long openable = nodes.stream().filter(t -> t.table().kind().hasRows()).count();
+            if (openable > 0) {
+                menu.getItems().add(item("打开 " + openable + " 张表",
+                        Icons.table(Icons.ACCENT, 12), false, e -> openTables(nodes)));
+            }
+            menu.getItems().add(item("刷新结构", Icons.refresh(Icons.NEUTRAL, 12), false, e ->
+                    nodes.forEach(t -> {
+                        DbSession s = context.sessionFor(t.config().id());
+                        if (s != null) {
+                            s.invalidateTable(t.schema(), t.table().name());
+                        }
+                    })));
+
+            String connectionId = nodes.get(0).config().id();
+            boolean destroyable = structural(nodes.get(0).config())
+                    && nodes.stream().allMatch(t -> t.config().id().equals(connectionId)
+                            && t.table().kind() == ObjectKind.TABLE);
+            if (destroyable) {
+                menu.getItems().addAll(new SeparatorMenuItem(),
+                        item("清空 " + nodes.size() + " 张表…", Icons.minus("#8a6d1f", 12), false,
+                                e -> destroyTables(batch, false)),
+                        item("删除 " + nodes.size() + " 张表…", Icons.minus("#a0402a", 12), true,
+                                e -> destroyTables(batch, true)));
+            }
         }
 
         /*
