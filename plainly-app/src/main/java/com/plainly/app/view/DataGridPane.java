@@ -237,6 +237,16 @@ public class DataGridPane extends VBox {
         gutterAnchorRow = -1;
 
         rebuildItems();
+        /*
+         * 换了一整套列之后，行要整个重建。
+         *
+         * 网格开着固定行高（plainly.css 的 -fx-fixed-cell-size），这时 JavaFX 每一行
+         * 只画「看得见的那几列」，而这几列是按旧列和横向滚动位置算出来的。
+         * 用户横向滚过、再执行一次查询，行里就还按旧的位置去画：表头是 col_4，
+         * 底下摆的是 col_7 的值，左边空一大块——看上去就是「多点几次，列变少了」。
+         * refresh 让每一行按新的列重新排一遍。
+         */
+        table.refresh();
         clearInspector();
     }
 
