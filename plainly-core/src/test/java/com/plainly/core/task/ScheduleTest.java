@@ -124,8 +124,12 @@ class ScheduleTest {
         try (LocalStore store = new LocalStore(dir.resolve("tasks3.db"))) {
             TaskStore tasks = new TaskStore(store);
             ScheduledTask task = tasks.save(new ScheduledTask().setName("丙"));
-            tasks.recordRun(task.id(), LocalDateTime.of(2026, 9, 1, 3, 0), 1000, true, "成功");
-            tasks.recordRun(task.id(), LocalDateTime.of(2026, 9, 2, 3, 0), 900, false, "磁盘满");
+            // 时间取相对现在的：每次写入运行记录都会顺手清掉 30 天前的（Retention.DAYS）。
+            // 原来写死成 2026-09-01，过了 10 月 1 日这两条刚写进去就被当成过期删掉，
+            // 测试从那天起必然失败——和被测代码对不对没有关系
+            LocalDateTime now = LocalDateTime.now().withNano(0);
+            tasks.recordRun(task.id(), now.minusDays(2), 1000, true, "成功");
+            tasks.recordRun(task.id(), now.minusDays(1), 900, false, "磁盘满");
 
             List<TaskStore.Run> runs = tasks.recentRuns(task.id(), 10);
             assertEquals(2, runs.size());
