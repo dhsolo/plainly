@@ -59,14 +59,57 @@ class SqlFormatterTest {
     }
 
     @Test
-    @DisplayName("子查询里的 WHERE 不往外拆")
-    void doesNotSplitInsideSubquery() {
+    @DisplayName("FROM 后面的子查询按同样的规则展开，缩进一级")
+    void formatsSubqueryInFrom() {
+        String out = SqlFormatter.format("select count (1) from (SELECT\n"
+                + "  id,devName,devType\n"
+                + "FROM ele_account ea) p");
+        assertEquals(String.join("\n",
+                "SELECT",
+                "  count(1)",
+                "FROM (",
+                "  SELECT",
+                "    id,",
+                "    devName,",
+                "    devType",
+                "  FROM ele_account ea",
+                ") p"), out);
+    }
+
+    @Test
+    @DisplayName("WHERE 里的子查询跟着条件那一行缩进，里面的 AND 不跑到外层")
+    void formatsSubqueryInWhere() {
         String out = SqlFormatter.format(
-                "select id from t where id in (select id from u where a = 1 and b = 2)");
-        assertEquals(1, count(out, "\nWHERE"), "只有外层那个 WHERE 起新行：" + out);
-        assertTrue(out.contains("(select id from u where a = 1 and b = 2)")
-                        || out.contains("(select id from u where a = 1 and b = 2 )"),
-                "子查询原样留在括号里：" + out);
+                "select id from t where a = 1 and id in (select id from u where a = 1 and b = 2)");
+        assertEquals(String.join("\n",
+                "SELECT",
+                "  id",
+                "FROM t",
+                "WHERE a = 1",
+                "  AND id in (",
+                "    SELECT",
+                "      id",
+                "    FROM u",
+                "    WHERE a = 1",
+                "      AND b = 2",
+                "  )"), out);
+    }
+
+    @Test
+    @DisplayName("普通括号不当子查询：IN 列表留在一行，关键字后面留空格")
+    void keepsValueListsInline() {
+        String out = SqlFormatter.format("select id from t where id in(1,2,3)");
+        assertTrue(out.contains("WHERE id in (1, 2, 3)"), out);
+    }
+
+    @Test
+    @DisplayName("行注释后面的内容不能被并进注释里")
+    void lineCommentDoesNotSwallowNextToken() {
+        String out = SqlFormatter.format("select id -- 主键\n, name from t");
+        assertTrue(out.contains("-- 主键\n"), "注释必须以换行结束：" + out);
+        assertTrue(out.contains("name"), out);
+        assertTrue(!out.contains("主键 ,") && !out.contains("主键 name"),
+                "name 被吞进注释了：" + out);
     }
 
     @Test
@@ -86,7 +129,9 @@ class SqlFormatterTest {
                 "select id, name from users where a = 1 and b = 2 order by id",
                 "select id from t where note = 'a AND b'",
                 "select a from t left join u on t.id = u.id",
-                "select id, coalesce(a, b) from t where id in (select x from y)"}) {
+                "select id, coalesce(a, b) from t where id in (select x from y)",
+                "select count(1) from (select a, b from t where x = 1 and y in (select y from z)) p",
+                "select id -- 主键\n, name from t"}) {
             String once = SqlFormatter.format(sql);
             String twice = SqlFormatter.format(once);
             assertEquals(once, twice, "不幂等：" + sql);

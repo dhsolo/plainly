@@ -24,8 +24,10 @@ import java.util.Set;
  *   <li>查询字段<b>一行一个</b>——列多了之后，挤在一行里根本看不出少写了哪个；</li>
  *   <li>{@code FROM / WHERE / GROUP BY / ORDER BY / JOIN} 这些子句各起一行；</li>
  *   <li>{@code AND / OR} 起一行并缩进，让条件的层次看得见；</li>
- *   <li><b>只在括号外拆</b>：{@code COALESCE(a, b)} 里的逗号、子查询里的 WHERE 都不动，
- *       否则拆出来的东西比不拆更难读。</li>
+ *   <li>函数参数、{@code IN (1, 2, 3)} 这类<b>普通括号里不拆</b>：
+ *       {@code COALESCE(a, b)} 拆成三行比不拆更难读；</li>
+ *   <li><b>子查询</b>（括号里以 SELECT / WITH 开头）按同样的规则排，整体缩进一级，
+ *       {@code )} 单独起一行和开头对齐。</li>
  * </ul>
  *
  * <h2>必须幂等</h2>
@@ -57,6 +59,27 @@ public final class SqlFormatter {
     private SqlFormatter() {
     }
 
+    /**
+     * 一层查询：最外层的语句，或者括号里的一个子查询。
+     *
+     * <p>子查询和外层用同一套规则排版，只是整体往里缩一级。原来括号里一律不动，
+     * {@code FROM (SELECT a, b, c FROM t WHERE ...) p} 整个挤在一行里——
+     * 偏偏子查询往往是整条语句里最长、最需要看清的那一段。
+     *
+     * @param base   这一层子句关键字的缩进
+     * @param parens 这一层里还没合上的<b>普通</b>括号（函数参数、IN 列表），
+     *               大于 0 时不拆行
+     */
+    private static final class Level {
+        final String base;
+        int parens;
+        boolean inSelectList;
+
+        Level(String base) {
+            this.base = base;
+        }
+    }
+
     public static String format(String sql) {
         if (sql == null || sql.isBlank()) {
             return sql == null ? "" : sql;
@@ -64,82 +87,107 @@ public final class SqlFormatter {
         List<String> tokens = tokenize(sql);
 
         StringBuilder out = new StringBuilder();
-        int depth = 0;
-        boolean inSelectList = false;
+        java.util.Deque<Level> levels = new java.util.ArrayDeque<>();
+        levels.push(new Level(""));
         boolean atLineStart = true;
 
         for (int i = 0; i < tokens.size(); i++) {
             String token = tokens.get(i);
             String upper = token.toUpperCase(Locale.ROOT);
+            Level level = levels.peek();
+            boolean splittable = level.parens == 0;
 
             if (token.equals("(")) {
-                depth++;
-                append(out, token, false, atLineStart);
+                boolean subquery = i + 1 < tokens.size()
+                        && SUBQUERY_START.contains(tokens.get(i + 1).toUpperCase(Locale.ROOT));
+                boolean space = subquery || spaceBeforeParen(tokens, i);
+                append(out, token, space, atLineStart);
                 atLineStart = false;
+                if (subquery) {
+                    // 里面的 SELECT 会自己起新行，缩进比 ( 所在的那一行深一级
+                    levels.push(new Level(lineIndent(out) + INDENT));
+                } else {
+                    level.parens++;
+                }
                 continue;
             }
             if (token.equals(")")) {
-                depth = Math.max(0, depth - 1);
-                append(out, token, false, atLineStart);
+                if (level.parens == 0 && levels.size() > 1) {
+                    // 子查询收尾：) 单独起一行，和开头那个 ( 所在的行对齐
+                    levels.pop();
+                    newLine(out);
+                    out.append(level.base, 0, level.base.length() - INDENT.length()).append(')');
+                } else {
+                    level.parens = Math.max(0, level.parens - 1);
+                    append(out, token, false, atLineStart);
+                }
                 atLineStart = false;
                 continue;
             }
             if (token.equals(";")) {
                 // 语句之间空一行：一屏里跑好几条时，边界得看得出来
                 out.append(";").append('\n').append('\n');
-                depth = 0;
-                inSelectList = false;
+                levels.clear();
+                levels.push(new Level(""));
                 atLineStart = true;
                 continue;
             }
             if (token.equals(",")) {
                 out.append(',');
-                if (depth == 0 && inSelectList) {
+                if (splittable && level.inSelectList) {
                     // 查询字段一行一个。括号里的逗号不拆——那是函数参数
-                    out.append('\n').append(INDENT);
+                    out.append('\n').append(level.base).append(INDENT);
                     atLineStart = true;
                 } else {
                     atLineStart = false;
                 }
                 continue;
             }
-
-            // 多词关键字要整体识别，否则 GROUP 和 BY 会被拆到两行上
-            String phrase = phraseAt(tokens, i);
-            if (phrase != null && depth == 0) {
-                i += phrase.split(" ").length - 1;
-                newLine(out);
-                out.append(phrase);
-                atLineStart = false;
-                inSelectList = false;
-                continue;
-            }
-
-            if (depth == 0 && CLAUSE.contains(upper)) {
-                newLine(out);
-                out.append(upper);
-                atLineStart = false;
-                inSelectList = false;
-                continue;
-            }
-            if (depth == 0 && CONJUNCTION.contains(upper)) {
-                newLine(out);
-                out.append(INDENT).append(upper);
-                atLineStart = false;
-                continue;
-            }
-            if (depth == 0 && upper.equals("SELECT")) {
-                newLine(out);
-                out.append("SELECT").append('\n').append(INDENT);
-                inSelectList = true;
+            if (token.startsWith("--")) {
+                // 行注释一直管到行尾。后面的词要是接在同一行，就被它吞进注释里了
+                append(out, token, true, atLineStart);
+                out.append('\n').append(level.base).append(level.inSelectList ? INDENT : "");
                 atLineStart = true;
                 continue;
             }
-            if (depth == 0 && upper.equals("UNION")) {
+
+            // 多词关键字要整体识别，否则 GROUP 和 BY 会被拆到两行上
+            String phrase = phraseAt(tokens, i);
+            if (phrase != null && splittable) {
+                i += phrase.split(" ").length - 1;
                 newLine(out);
-                out.append("UNION");
+                out.append(level.base).append(phrase);
                 atLineStart = false;
-                inSelectList = false;
+                level.inSelectList = false;
+                continue;
+            }
+
+            if (splittable && CLAUSE.contains(upper)) {
+                newLine(out);
+                out.append(level.base).append(upper);
+                atLineStart = false;
+                level.inSelectList = false;
+                continue;
+            }
+            if (splittable && CONJUNCTION.contains(upper)) {
+                newLine(out);
+                out.append(level.base).append(INDENT).append(upper);
+                atLineStart = false;
+                continue;
+            }
+            if (splittable && upper.equals("SELECT")) {
+                newLine(out);
+                out.append(level.base).append("SELECT").append('\n')
+                        .append(level.base).append(INDENT);
+                level.inSelectList = true;
+                atLineStart = true;
+                continue;
+            }
+            if (splittable && upper.equals("UNION")) {
+                newLine(out);
+                out.append(level.base).append("UNION");
+                atLineStart = false;
+                level.inSelectList = false;
                 continue;
             }
 
@@ -147,6 +195,49 @@ public final class SqlFormatter {
             atLineStart = false;
         }
         return out.toString().strip();
+    }
+
+    /** 括号后面跟着这些词，括号里就是一个子查询。 */
+    private static final Set<String> SUBQUERY_START = Set.of("SELECT", "WITH");
+
+    /**
+     * 跟在这些词后面的 ( 前面留空格。
+     *
+     * <p>别的词后面不留：那是函数名，{@code count(1)} 才是通常的写法，
+     * 写成 {@code count (1)} 的也顺手收紧。
+     */
+    private static final Set<String> SPACED_BEFORE_PAREN = Set.of(
+            "IN", "EXISTS", "FROM", "JOIN", "ON", "AND", "OR", "NOT", "AS", "WHERE",
+            "VALUES", "USING", "ALL", "ANY", "SOME", "SELECT", "HAVING", "WHEN", "THEN",
+            "ELSE", "CASE", "SET", "INTO");
+
+    private static boolean spaceBeforeParen(List<String> tokens, int i) {
+        if (i == 0) {
+            return false;
+        }
+        String prev = tokens.get(i - 1);
+        if (prev.equals("(") || prev.equals(",")) {
+            return prev.equals(",");
+        }
+        String upper = prev.toUpperCase(Locale.ROOT);
+        if (SPACED_BEFORE_PAREN.contains(upper)) {
+            return true;
+        }
+        // 运算符后面也留：a = (b + c)、x * (y - 1)
+        return !Character.isLetterOrDigit(prev.charAt(prev.length() - 1))
+                && prev.charAt(prev.length() - 1) != '_'
+                && prev.charAt(prev.length() - 1) != ')'
+                && prev.charAt(0) != '"' && prev.charAt(0) != '`';
+    }
+
+    /** 当前这一行开头的空格。 */
+    private static String lineIndent(StringBuilder out) {
+        int start = out.lastIndexOf("\n") + 1;
+        int end = start;
+        while (end < out.length() && out.charAt(end) == ' ') {
+            end++;
+        }
+        return out.substring(start, end);
     }
 
     /** 追加一个词，必要时在前面补一个空格。 */
