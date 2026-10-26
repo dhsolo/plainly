@@ -283,13 +283,19 @@ public final class Dialects {
         }
 
         /**
-         * InnoDB 的 {@code TABLE_ROWS} 是从索引里采样估出来的，几成的偏差很常见；
-         * MyISAM 上则是准确值。视图这一行是 NULL，读的时候会被当成「未知」。
+         * MySQL 上不给行数：取不到可信的数，宁可不显示。
+         *
+         * <p>原来读的是 {@code information_schema.TABLES.TABLE_ROWS}，它错在两层：
+         * InnoDB 上这个值是从索引里采样估出来的，几成的偏差很常见；而 MySQL 8 还把它
+         * 缓存了 {@code information_schema_stats_expiry}（默认 24 小时）——插入、删除之后
+         * 刷新多少次都是旧数，清空过的表照样显示几千行。用户拿它和实际一对，就是错的。
+         *
+         * <p>改成逐表 {@code COUNT(*)} 也不行，理由见 {@link SqlDialect#tableRowCountQuery}。
+         * OceanBase 继承这里，它的这一列同样是估算。
          */
         @Override
         public String tableRowCountQuery(String schema) {
-            return "SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES"
-                    + " WHERE TABLE_SCHEMA = " + stringLiteral(schema);
+            return null;
         }
 
         /**
