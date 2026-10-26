@@ -249,6 +249,25 @@ public final class JdbcConnections {
             p.setProperty("useSSL", "false");
         }
 
+        /*
+         * 批量写入改写成多行 INSERT。
+         *
+         * 不开的话，驱动把一批 1000 行老老实实拆成 1000 条 INSERT、等 1000 次回包——
+         * 导入、数据传输、还原备份全卡在网络往返上，跨机房时一秒只能写几百行。
+         * 开了之后一批变成一条 INSERT ... VALUES (...), (...), ...，这是 Navicat、
+         * mysqldump 写数据的方式，快一到两个数量级。
+         *
+         * 代价：批里每行的受影响行数驱动不再逐行报，统一报「成功」——
+         * 「跳过主键冲突」时，写入行数会按提交行数算，略高于实际。
+         * 用户在「高级属性」里显式写了这个属性的话，下面那段会覆盖掉这里的默认值。
+         */
+        if (c.type() == DbType.MYSQL || c.type() == DbType.OCEANBASE) {
+            p.setProperty("rewriteBatchedStatements", "true");
+        }
+        if (c.type() == DbType.POSTGRESQL) {
+            p.setProperty("reWriteBatchedInserts", "true");
+        }
+
         if (c.type() == DbType.DM && !nullToEmpty(c.database()).isBlank()) {
             // 驱动自己承认的属性名（DmDriver.getPropertyInfo 里查到的）：
             // 「指定用户登录后的当前模式，默认为用户的默认模式」

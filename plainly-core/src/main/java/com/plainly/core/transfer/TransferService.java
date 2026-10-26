@@ -133,7 +133,11 @@ public final class TransferService {
             List<List<String>> batch = new ArrayList<>();
             SqlDialect.PreparedSql statement = insert;
 
-            RowSource rows = RowSource.ofTable(source, sourceSchema, table, null, batchSize, -1);
+            // 同一个连接对象上边读边写会冲突（见 RowSource.ofTablePaged），只能退回分页。
+            // 界面那一侧给的是两条专用连接，正常走不到这里
+            RowSource rows = source == target
+                    ? RowSource.ofTablePaged(source, sourceSchema, table, null, batchSize, -1)
+                    : RowSource.ofTable(source, sourceSchema, table, null, batchSize, -1);
             List<String> sourceNames = rows.columns().stream()
                     .map(c -> c.name().toLowerCase()).toList();
             int[] order = new int[targetColumns.size()];

@@ -104,12 +104,40 @@ public interface RowSource {
     }
 
     /**
-     * 全表分页扫描。
+     * 全表读出：一条 SELECT，游标逐行推，内存占用与总行数无关。
      *
-     * <p>按主键或物理顺序分批取，每批一条查询，内存占用与总行数无关。
+     * <h2>为什么不再分页</h2>
+     * 原来是 {@code LIMIT n OFFSET k} 一页页取。OFFSET 要让数据库先数过前面 k 行再扔掉，
+     * 第一页很快、第一万页要扫一千万行——总耗时随表大小平方增长，几百万行的表
+     * 导出、传输、备份能拖上几十分钟。而且没有 ORDER BY 的分页之间顺序不保证，
+     * 同一行可能在两页里各出现一次、另一行一次都不出现，行数对得上也不代表搬对了。
+     *
+     * <p>流式读取期间这条连接被占着（MySQL 上发不了别的语句），
+     * 所以调用方应当给它一条<b>专用连接</b>，不要拿界面在用的那条。
+     *
+     * <p>Redis、MongoDB 不认这条 SELECT，仍走它们自己方言里的分页；
+     * 指定了排序的也走分页。
      */
     static RowSource ofTable(DbConnection conn, String schema, String table,
                              String orderBy, int batchSize, long total) {
+        if (!conn.config().type().isJdbc() || (orderBy != null && !orderBy.isBlank())) {
+            return ofTablePaged(conn, schema, table, orderBy, batchSize, total);
+        }
+        QueryResult probe = conn.execute(
+                conn.dialect().selectPage(schema, table, null, 1, 0), 1);
+        String sql = "SELECT * FROM " + conn.dialect().qualify(schema, table);
+        return ofQuery(conn, schema, sql, probe.columns(), total);
+    }
+
+    /**
+     * 全表分页扫描。
+     *
+     * <p>比 {@link #ofTable} 慢得多（见那边的说明），只在流式读不了时用：
+     * 非关系库，或者读写共用同一条连接——一边开着游标一边往同一条连接写，
+     * MySQL 直接拒绝，PostgreSQL 上提交会把游标关掉。
+     */
+    static RowSource ofTablePaged(DbConnection conn, String schema, String table,
+                                  String orderBy, int batchSize, long total) {
         QueryResult probe = conn.execute(
                 conn.dialect().selectPage(schema, table, orderBy, 1, 0), 1);
         return new RowSource() {

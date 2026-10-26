@@ -157,6 +157,21 @@ public class AppContext implements AutoCloseable {
      * <p><b>要在后台线程上调用。</b>连接断了的时候，这一下最多要等
      * {@code isAlive()} 的超时。
      */
+    /**
+     * 另开一条只给某个长任务用的连接，用完由调用方关掉。
+     *
+     * <h2>为什么不用会话那条</h2>
+     * 导出、传输、备份要边读边写几百万行，读用的是游标流式读取——
+     * 游标开着的这段时间里，MySQL 上这条连接发不了任何别的语句。
+     * 拿界面在用的那条去跑，导出期间用户在别的标签页点什么都报错；
+     * 而换回分页读（每页一次 OFFSET）又慢到不能用。Navicat 也是给这类任务单开连接。
+     *
+     * <p>新连接不继承界面那条的手动事务：那边没提交的改动，这里看不见。
+     */
+    public DbConnection openDedicated(ConnectionConfig config) {
+        return Connections.open(registry.resolvePassword(config));
+    }
+
     public DbSession openSession(ConnectionConfig config) {
         DbSession existing = sessions.get(config.id());
         /*

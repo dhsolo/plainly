@@ -510,11 +510,16 @@ public final class BackupService {
                     .setFormat(ExportOptions.Format.SQL_INSERT)
                     .setTableName(table)
                     .setDialect(conn.dialect())
+                    // 还原时一条语句一次往返，几百行并一条，还原快两个数量级
+                    .setExtendedInserts(true)
                     .setTarget(temp);
             long rows = Exporters.export(
                     RowSource.ofTable(conn, schema, table, null, 1000, -1), options, n -> { });
             if (rows > 0) {
-                w.write(Files.readString(temp, StandardCharsets.UTF_8));
+                // 边读边写，不整个读进内存：一张几百万行的表，临时文件就有好几百兆
+                try (java.io.Reader r = Files.newBufferedReader(temp, StandardCharsets.UTF_8)) {
+                    r.transferTo(w);
+                }
                 w.write("\n");
             }
             return rows;

@@ -41,6 +41,16 @@ public final class Exporters {
     /** 分批写盘的行数，同时也是进度回调的粒度。 */
     private static final int FLUSH_EVERY = 500;
 
+    /**
+     * 多行 INSERT 每条最多并几行、多少字符。
+     *
+     * <p>行数卡在 200：SQL Server 一条 VALUES 最多 1000 行，老版本 SQLite 最多 500。
+     * 字符数卡在 1 MB：MySQL 5.7 的 max_allowed_packet 默认只有 4 MB，
+     * 一条语句超过它服务端直接断开连接，还原停在半路。
+     */
+    private static final int EXTENDED_ROWS = 200;
+    private static final int EXTENDED_CHARS = 1 << 20;
+
     private Exporters() {
     }
 
@@ -335,23 +345,39 @@ public final class Exporters {
             colList.append(quoteIdentifier(o, columns.get(i).name()));
         }
         String prefix = "INSERT INTO " + quoteIdentifier(o, o.tableName())
-                + " (" + colList + ") VALUES (";
+                + " (" + colList + ") VALUES ";
+        boolean extended = o.extendedInserts()
+                && (o.dialect() == null || o.dialect().supportsMultiRowInsert());
 
         try (Writer w = new BufferedWriter(Files.newBufferedWriter(o.target(), o.charset()))) {
             if (o.includeDdl() && o.ddl() != null && !o.ddl().isBlank()) {
                 w.write(o.ddl().strip());
                 w.write("\n\n");
             }
+            // 多行模式下正在攒的那一条语句，以及里面已经有几行
+            StringBuilder pending = new StringBuilder();
+            int[] inPending = {0};
             source.forEach(row -> {
                 try {
-                    StringBuilder sb = new StringBuilder(prefix);
+                    StringBuilder values = new StringBuilder("(");
                     for (int i = 0; i < columns.size(); i++) {
                         if (i > 0) {
-                            sb.append(", ");
+                            values.append(", ");
                         }
-                        sb.append(sqlLiteral(columns.get(i), row.get(i)));
+                        values.append(sqlLiteral(columns.get(i), row.get(i)));
                     }
-                    w.write(sb.append(");\n").toString());
+                    values.append(')');
+                    if (!extended) {
+                        w.write(prefix + values + ";\n");
+                    } else {
+                        pending.append(inPending[0] == 0 ? prefix : ",\n  ").append(values);
+                        inPending[0]++;
+                        if (inPending[0] >= EXTENDED_ROWS || pending.length() >= EXTENDED_CHARS) {
+                            w.write(pending.append(";\n").toString());
+                            pending.setLength(0);
+                            inPending[0] = 0;
+                        }
+                    }
                     long n = written.incrementAndGet();
                     if (n % FLUSH_EVERY == 0) {
                         progress.accept(n);
@@ -360,6 +386,9 @@ public final class Exporters {
                     throw new DbException("写入 SQL 失败：" + e.getMessage(), e);
                 }
             });
+            if (inPending[0] > 0) {
+                w.write(pending.append(";\n").toString());
+            }
         } catch (IOException e) {
             throw new DbException("写入 SQL 失败：" + e.getMessage(), e);
         }

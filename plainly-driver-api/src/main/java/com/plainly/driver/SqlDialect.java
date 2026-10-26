@@ -51,6 +51,16 @@ public interface SqlDialect {
         return sb.toString();
     }
 
+    /**
+     * 认不认 {@code INSERT INTO t (...) VALUES (...), (...)} 这种一条语句多行的写法。
+     *
+     * <p>备份用它把几百行并成一条，还原时少几百次往返。Oracle 不认（要写 INSERT ALL），
+     * 达梦沿用 Oracle 方言，保守起见一起按不认处理。
+     */
+    default boolean supportsMultiRowInsert() {
+        return true;
+    }
+
     default String countRows(String schema, String table) {
         return "SELECT COUNT(*) FROM " + qualify(schema, table);
     }

@@ -417,29 +417,12 @@ public class DataTransferDialog {
         startButton.setDisable(true);
 
         context.queryService().submit(() -> {
-            DbConnection src = context.openSession(sourceCfg).connection();
-            DbConnection dst = context.openSession(targetCfg).connection();
-            List<String> report = new ArrayList<>();
-            for (String table : picked) {
-                Platform.runLater(() -> progressLabel.setText("正在传输 " + table + " …"));
-                TransferService.TablePlan plan =
-                        TransferService.plan(src, sourceDb, table, dst, targetDb);
-                TransferService.Outcome outcome = TransferService.transfer(
-                        src, sourceDb, plan, dst, targetDb, mode, batch,
-                        n -> Platform.runLater(() -> progressLabel.setText(
-                                table + " · 已搬 " + UiUtils.groupDigits(n) + " 行")));
-                if (!outcome.ok()) {
-                    report.add(table + " 失败：" + outcome.problem());
-                    // 一张表失败就停：继续搬只会让「哪些搬成了」变得更难说清
-                    break;
-                }
-                String line = table + " · " + UiUtils.groupDigits(outcome.read()) + " 行";
-                if (verify) {
-                    line += " · 比对 " + TransferService.verify(src, sourceDb, dst, targetDb, table);
-                }
-                report.add(line);
+            // 两条专用连接：源那条开着游标流式读，目标那条批量写。
+            // 源和目标是同一个库也照样开两条——同一条连接上边读游标边写，MySQL 不允许
+            try (DbConnection src = context.openDedicated(sourceCfg);
+                 DbConnection dst = context.openDedicated(targetCfg)) {
+                return transferAll(src, sourceDb, dst, targetDb, picked, mode, batch, verify);
             }
-            return report;
         }).whenComplete((report, error) -> Platform.runLater(() -> {
             progress.setVisible(false);
             progressLabel.setText("");
@@ -450,6 +433,32 @@ public class DataTransferDialog {
             }
             UiUtils.showInfo(stage, "传输完成", String.join("\n", report));
         }));
+    }
+
+    private List<String> transferAll(DbConnection src, String sourceDb, DbConnection dst,
+                                     String targetDb, Set<String> picked,
+                                     TransferService.TargetMode mode, int batch, boolean verify) {
+        List<String> report = new ArrayList<>();
+        for (String table : picked) {
+            Platform.runLater(() -> progressLabel.setText("正在传输 " + table + " …"));
+            TransferService.TablePlan plan =
+                    TransferService.plan(src, sourceDb, table, dst, targetDb);
+            TransferService.Outcome outcome = TransferService.transfer(
+                    src, sourceDb, plan, dst, targetDb, mode, batch,
+                    n -> Platform.runLater(() -> progressLabel.setText(
+                            table + " · 已搬 " + UiUtils.groupDigits(n) + " 行")));
+            if (!outcome.ok()) {
+                report.add(table + " 失败：" + outcome.problem());
+                // 一张表失败就停：继续搬只会让「哪些搬成了」变得更难说清
+                break;
+            }
+            String line = table + " · " + UiUtils.groupDigits(outcome.read()) + " 行";
+            if (verify) {
+                line += " · 比对 " + TransferService.verify(src, sourceDb, dst, targetDb, table);
+            }
+            report.add(line);
+        }
+        return report;
     }
 
     private int batchSize() {

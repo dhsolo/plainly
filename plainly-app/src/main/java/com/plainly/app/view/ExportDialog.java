@@ -9,6 +9,7 @@ import com.plainly.core.export.ExportOptions;
 import com.plainly.core.export.Exporters;
 import com.plainly.core.export.RowSource;
 import com.plainly.driver.ColumnMeta;
+import com.plainly.driver.DbConnection;
 import com.plainly.driver.QueryResult;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -604,25 +605,16 @@ public class ExportDialog {
                     (ExportOptions.LongNumberMode) precisionGroup.getSelectedToggle().getUserData());
         }
 
-        RowSource source;
-        if (rangeAll.isSelected()) {
-            source = RowSource.ofTable(session.connection(), schema, tableName, null, 1000,
-                    totalRows);
-        } else if (rerunQuery != null && rerunQuery.isSelected()) {
-            // 列取自上一次执行的结果：导出要先写表头，而那时游标还一行没读
-            source = RowSource.ofQuery(session.connection(), schema, querySql,
-                    current.columns(), -1);
-        } else {
-            source = RowSource.of(current);
-        }
+        boolean wholeTable = rangeAll.isSelected();
+        boolean rerun = !wholeTable && rerunQuery != null && rerunQuery.isSelected();
+        long expected = wholeTable ? totalRows : rerun ? -1 : current.rows().size();
 
         trigger.setDisable(true);
         progress.setVisible(true);
         progress.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
         progressLabel.setText("导出中…");
 
-        long expected = source.estimatedTotal();
-        context.queryService().submit(() -> Exporters.export(source, options, written -> {
+        java.util.function.LongConsumer onProgress = written -> {
             if (expected > 0) {
                 Platform.runLater(() -> {
                     progress.setProgress((double) written / expected);
@@ -630,7 +622,21 @@ public class ExportDialog {
                             + UiUtils.groupDigits(expected));
                 });
             }
-        })).whenComplete((written, error) -> Platform.runLater(() -> {
+        };
+        context.queryService().submit(() -> {
+            if (!wholeTable && !rerun) {
+                return Exporters.export(RowSource.of(current), options, onProgress);
+            }
+            // 要回库里读的两种都用专用连接：游标流式读期间那条连接被占着，
+            // 用界面那条的话，导出没完之前别的标签页一查就报错（见 AppContext.openDedicated）
+            try (DbConnection conn = context.openDedicated(session.config())) {
+                RowSource source = wholeTable
+                        ? RowSource.ofTable(conn, schema, tableName, null, 1000, totalRows)
+                        // 列取自上一次执行的结果：导出要先写表头，而那时游标还一行没读
+                        : RowSource.ofQuery(conn, schema, querySql, current.columns(), -1);
+                return Exporters.export(source, options, onProgress);
+            }
+        }).whenComplete((written, error) -> Platform.runLater(() -> {
             trigger.setDisable(false);
             progress.setVisible(false);
             if (error != null) {

@@ -116,13 +116,52 @@ class BackupTest {
 
         target.executeDdlBatch(List.of("DROP TABLE IF EXISTS ITEMS"));
         int executed = BackupService.restore(target, SCHEMA, file, s -> { });
-        assertTrue(executed >= 4, "至少建表 + 建索引 + 三条 INSERT，实得 " + executed);
+        // 三行数据并成了一条多行 INSERT（见 largeTableUsesExtendedInserts）
+        assertTrue(executed >= 3, "至少建表 + 建索引 + 一条 INSERT，实得 " + executed);
 
         QueryResult count = target.execute("SELECT COUNT(*) FROM ITEMS", 1);
         assertEquals("3", count.rows().get(0).get(0));
 
         QueryResult price = target.execute("SELECT PRICE FROM ITEMS WHERE ID = 1", 1);
         assertEquals(HUGE, price.rows().get(0).get(0), "备份还原后一位不差");
+    }
+
+    /**
+     * 备份的数据段是多行 INSERT：还原时一条语句一次往返，几百行并一条才快得起来。
+     * 这里守两件事：确实并了，并了之后还原回来一行不差、值一位不差。
+     */
+    @Test
+    @DisplayName("大表备份用多行 INSERT，还原回来行数和值都对得上")
+    void largeTableUsesExtendedInserts() throws IOException {
+        try (DbConnection src = JdbcConnections.open(new ConnectionConfig()
+                     .setName("bk-big-src").setType(DbType.H2)
+                     .setFilePath("mem:plainly_bk_big_src;DB_CLOSE_DELAY=-1")
+                     .setUser("sa").setPassword(""));
+             DbConnection dst = JdbcConnections.open(new ConnectionConfig()
+                     .setName("bk-big-dst").setType(DbType.H2)
+                     .setFilePath("mem:plainly_bk_big_dst;DB_CLOSE_DELAY=-1")
+                     .setUser("sa").setPassword(""))) {
+            src.executeDdlBatch(List.of(
+                    "CREATE TABLE BIG (ID INT PRIMARY KEY, PRICE DECIMAL(38,10), NOTE VARCHAR(40))",
+                    "INSERT INTO BIG SELECT X, " + HUGE + " + X, 'n''' || X FROM SYSTEM_RANGE(1, 450)"));
+
+            Path file = dir.resolve("big.sql");
+            BackupService.Result result = BackupService.backup(src, SCHEMA, file, true, s -> { });
+            assertEquals(450, result.rows());
+
+            String script = Files.readString(file, StandardCharsets.UTF_8);
+            int inserts = script.split("INSERT INTO", -1).length - 1;
+            assertEquals(3, inserts, "450 行应当并成 3 条（每条至多 200 行），实得 " + inserts);
+
+            BackupService.restore(dst, SCHEMA, file, s -> { });
+            assertEquals("450", dst.scalar("SELECT COUNT(*) FROM BIG"));
+            assertEquals(new java.math.BigDecimal(HUGE).add(java.math.BigDecimal.valueOf(450))
+                            .setScale(10).toPlainString(),
+                    dst.scalar("SELECT PRICE FROM BIG WHERE ID = 450"),
+                    "最后一批里的高精度值要一位不差");
+            assertEquals("n'7", dst.scalar("SELECT NOTE FROM BIG WHERE ID = 7"),
+                    "多行语句里的引号转义也要对");
+        }
     }
 
     @Test

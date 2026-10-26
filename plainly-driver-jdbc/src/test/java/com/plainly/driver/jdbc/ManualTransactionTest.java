@@ -150,6 +150,51 @@ class ManualTransactionTest {
         assertEquals(0, rowCount(), "批量不该替用户提交");
     }
 
+    // ------------------------------------------------------------------ 批量写入（导入、传输用的那条）
+
+    private static com.plainly.driver.SqlDialect.PreparedSql probeInsert() {
+        return conn.dialect().buildInsert("PUBLIC", "TX_PROBE",
+                conn.describeTable("PUBLIC", "TX_PROBE").columns());
+    }
+
+    @Test
+    @DisplayName("自动提交下批量写：一批包成一个事务提交，之后连接回到自动提交、不亮「未提交」")
+    void autoCommitBatchIsCommittedAsOne() {
+        int written = conn.executeBatch(probeInsert(), List.of(
+                List.of("1", "一"), List.of("2", "二"), List.of("3", "三")));
+
+        assertEquals(3, written);
+        assertEquals(3, rowCount());
+        assertTrue(conn.autoCommit(), "临时关掉的自动提交必须还回去");
+        assertFalse(conn.hasPendingTransaction(),
+                "那个事务是我们自己开、已经提交了的——不能把「未提交」那盏灯点亮");
+    }
+
+    @Test
+    @DisplayName("自动提交下批量写失败：整批退回，不留半批")
+    void autoCommitBatchFailureLeavesNothingBehind() {
+        // 第三行撞主键。不包事务的话前两行已经各自提交了，
+        // 导入退回逐行重试时它们会再撞一次，被算成失败行
+        assertThrows(RuntimeException.class, () -> conn.executeBatch(probeInsert(), List.of(
+                List.of("1", "一"), List.of("2", "二"), List.of("1", "撞主键"))));
+
+        assertEquals(0, rowCount(), "失败的一批一行都不该留下");
+        assertTrue(conn.autoCommit());
+        assertFalse(conn.hasPendingTransaction());
+    }
+
+    @Test
+    @DisplayName("用户事务里批量写：不替他提交，并亮起「未提交」")
+    void batchInsideUserTransactionIsNotCommitted() {
+        conn.setAutoCommit(false);
+        conn.executeBatch(probeInsert(), List.of(List.of("1", "一")));
+
+        assertTrue(conn.hasPendingTransaction());
+        conn.rollback();
+        conn.setAutoCommit(true);
+        assertEquals(0, rowCount(), "批量不该替用户提交");
+    }
+
     @Test
     @DisplayName("会隐式提交 DDL 的库上，带着未提交事务改结构会被拦下来")
     void ddlBlockedWhileTransactionOpen() {

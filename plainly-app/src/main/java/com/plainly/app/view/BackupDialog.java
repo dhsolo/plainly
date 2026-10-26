@@ -198,9 +198,11 @@ public class BackupDialog {
 
         busy(true);
         context.queryService().submit(() -> {
-            DbSession session = context.openSession(config);
-            return BackupService.backup(session.connection(), schema, target, data,
-                    line -> Platform.runLater(() -> status.setText(line)));
+            // 专用连接：数据段是游标流式读的，占着连接期间界面那条就不能用了
+            try (com.plainly.driver.DbConnection conn = context.openDedicated(config)) {
+                return BackupService.backup(conn, schema, target, data,
+                        line -> Platform.runLater(() -> status.setText(line)));
+            }
         }).whenComplete((result, error) -> Platform.runLater(() -> {
             busy(false);
             if (error != null) {

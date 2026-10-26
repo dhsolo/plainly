@@ -296,7 +296,10 @@ public class JdbcConnection implements DbConnection {
                 st.setFetchSize(config.type() == DbType.MYSQL
                         ? Integer.MIN_VALUE : STREAM_FETCH);
                 try (ResultSet rs = st.executeQuery(sql)) {
-                    List<ColumnMeta> columns = readColumns(rs.getMetaData());
+                    // 不查主键：流式读出来的东西是去导出、搬运的，用不上「哪列是主键」。
+                    // 而且 MySQL 的流式结果集开着的时候，这条连接上发不了别的语句，
+                    // 查主键必然失败
+                    List<ColumnMeta> columns = readColumns(rs.getMetaData(), false);
                     sink.columns(columns);
                     long count = 0;
                     while (rs.next()) {
@@ -448,6 +451,24 @@ public class JdbcConnection implements DbConnection {
             return 0;
         }
         List<ColumnInfo> bound = statement.boundColumns();
+        /*
+         * 自动提交下，一批包成一个事务。
+         *
+         * 不包的话每一行都是一个独立事务、各自刷一次日志——导入几十万行时，
+         * 时间大半花在提交上。包起来还有一个好处：一批要么全进要么全不进，
+         * 导入失败退回逐行重试时，不会撞上「这一批前半截其实已经写进去了」。
+         *
+         * 用户自己开着手动事务时不动：提交时机是他的，不能替他提交。
+         */
+        boolean ownTransaction;
+        try {
+            ownTransaction = conn.getAutoCommit();
+            if (ownTransaction) {
+                conn.setAutoCommit(false);
+            }
+        } catch (SQLException e) {
+            throw wrap(e, statement.sql());
+        }
         try (PreparedStatement ps = conn.prepareStatement(statement.sql())) {
             running.set(ps);
             for (List<String> row : rows) {
@@ -461,17 +482,37 @@ public class JdbcConnection implements DbConnection {
                 ps.addBatch();
             }
             int[] counts = ps.executeBatch();
-            markWritten();
+            if (ownTransaction) {
+                conn.commit();
+            } else {
+                // 只有用户自己的事务才算「有未提交的改动」。上面那个是我们临时开的、
+                // 已经提交了——这时调 markWritten 会看到自动提交是关着的，把那盏灯误点亮
+                markWritten();
+            }
             int affected = 0;
             for (int c : counts) {
                 // SUCCESS_NO_INFO(-2) 表示成功但不知道影响几行，按一行计
                 affected += c >= 0 ? c : (c == Statement.SUCCESS_NO_INFO ? 1 : 0);
             }
             return affected;
-        } catch (SQLException e) {
-            throw wrap(e, statement.sql());
+        } catch (SQLException | RuntimeException e) {
+            if (ownTransaction) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                    // 回滚不了多半是连接已经断了，原来那个错更有用
+                }
+            }
+            throw e instanceof SQLException se ? wrap(se, statement.sql()) : (RuntimeException) e;
         } finally {
             running.set(null);
+            if (ownTransaction) {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                    // 还不回去也不该盖掉上面真正的异常
+                }
+            }
         }
     }
 
@@ -972,6 +1013,12 @@ public class JdbcConnection implements DbConnection {
     }
 
     private List<ColumnMeta> readColumns(ResultSetMetaData md) throws SQLException {
+        return readColumns(md, true);
+    }
+
+    /** @param lookupKeys 要不要去查主键，标出哪些列属于主键（网格回写靠它） */
+    private List<ColumnMeta> readColumns(ResultSetMetaData md, boolean lookupKeys)
+            throws SQLException {
         int n = md.getColumnCount();
         List<ColumnMeta> columns = new ArrayList<>(n);
         for (int i = 1; i <= n; i++) {
@@ -982,7 +1029,7 @@ public class JdbcConnection implements DbConnection {
             int sqlType = columnType(md, i);
             String typeName = typeNameOf(md, i, sqlType);
 
-            boolean partOfKey = !table.isBlank()
+            boolean partOfKey = lookupKeys && !table.isBlank()
                     && primaryKeysOf(catalog, schema, table).contains(name.toLowerCase());
 
             columns.add(new ColumnMeta(
@@ -1122,10 +1169,16 @@ public class JdbcConnection implements DbConnection {
             return cached;
         }
         Set<String> loaded = loadPrimaryKeys(catalog, schema, table);
+        if (loaded == null) {
+            // 这一次没查成（连接正忙、权限一时不够）。不能把「没有主键」缓存下来：
+            // 缓存住之后，这张表在整个会话里都被当成无主键，网格一直是只读的
+            return Set.of();
+        }
         Set<String> raced = pkCache.putIfAbsent(key, loaded);
         return raced != null ? raced : loaded;
     }
 
+    /** @return 主键列名（小写）；查询本身失败时返回 null，以便和「确实没有主键」区分开 */
     private Set<String> loadPrimaryKeys(String catalog, String schema, String table) {
         Set<String> keys = new LinkedHashSet<>();
         try (ResultSet rs = conn.getMetaData().getPrimaryKeys(
@@ -1135,7 +1188,7 @@ public class JdbcConnection implements DbConnection {
             }
         } catch (SQLException e) {
             // 取不到主键不是致命错误：结果集降级为只读即可
-            return Set.of();
+            return null;
         }
         return keys;
     }

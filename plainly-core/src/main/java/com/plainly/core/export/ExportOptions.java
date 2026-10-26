@@ -204,4 +204,21 @@ public class ExportOptions {
         this.dialect = dialect;
         return this;
     }
+
+    /**
+     * SQL 导出时把多行并成一条 INSERT。
+     *
+     * <p>备份默认开：还原时语句条数少两个数量级，往返也就少两个数量级。
+     * 手动导出默认关：一行一条的文件好读、好比对，用户拿它多半是去看、去挑几行，而不是整份回灌。
+     */
+    private boolean extendedInserts;
+
+    public boolean extendedInserts() {
+        return extendedInserts;
+    }
+
+    public ExportOptions setExtendedInserts(boolean extendedInserts) {
+        this.extendedInserts = extendedInserts;
+        return this;
+    }
 }

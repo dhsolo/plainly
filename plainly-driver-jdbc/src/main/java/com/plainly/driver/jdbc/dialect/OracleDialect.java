@@ -35,6 +35,12 @@ import java.util.List;
  */
 public class OracleDialect extends Dialects.StandardDialect {
 
+    /** Oracle 多行插入要写成 INSERT ALL ... SELECT 1 FROM DUAL，VALUES 后面只认一行。 */
+    @Override
+    public boolean supportsMultiRowInsert() {
+        return false;
+    }
+
     // ------------------------------------------------------------------ 分页
 
     /**
