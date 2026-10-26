@@ -31,6 +31,9 @@ public class UiState {
     /** 界面主题：{@code light} 或 {@code dark}。缺省是亮色。 */
     public static final String THEME = "theme";
 
+    /** 启动时是否自动恢复上次的标签页：{@code on} 或 {@code off}。缺省是 on。 */
+    public static final String RESTORE_TABS = "session.restore";
+
     private final LocalStore store;
 
     public UiState(LocalStore store) {

@@ -241,6 +241,16 @@ public class MainWindow extends BorderPane {
             setStatus("已切换到" + Theme.label() + "主题");
         });
 
+        // 启动时不再弹窗问，直接恢复；不想要的人在这里关掉
+        javafx.scene.control.CheckMenuItem restoreItem =
+                new javafx.scene.control.CheckMenuItem("启动时恢复上次的标签页");
+        restoreItem.setSelected(restoreTabsEnabled());
+        restoreItem.setOnAction(e -> {
+            context.uiState().put(UiState.RESTORE_TABS, restoreItem.isSelected() ? "on" : "off");
+            setStatus(restoreItem.isSelected()
+                    ? "下次启动时会恢复这次的标签页" : "下次启动时不再恢复标签页");
+        });
+
         MenuButton tools = UiUtils.toolMenu("工具", Icons.filter(Icons.NEUTRAL, 13),
                 UiUtils.menuItem("收藏夹…", Icons.check(Icons.MUTED, 12), this::openFavorites),
                 UiUtils.menuItem("查询构建器…", Icons.filter(Icons.MUTED, 12),
@@ -256,6 +266,7 @@ public class MainWindow extends BorderPane {
                 UiUtils.menuItem("SQL 代码片段…", Icons.format(Icons.MUTED, 12),
                         () -> new SnippetDialog(context).show(window())),
                 themeItem,
+                restoreItem,
                 new SeparatorMenuItem(),
                 // 挨着「关于」放：两项回答的是同一类问题——我在用哪一版、
                 // 是不是该换一版。用户翻菜单找版本信息时会一眼看到它
@@ -848,38 +859,33 @@ public class MainWindow extends BorderPane {
         timer.play();
     }
 
+    /** 启动时要不要自动恢复上次的标签页。工具菜单里那个勾选项改的就是它。 */
+    private boolean restoreTabsEnabled() {
+        return !"off".equals(context.uiState().get(UiState.RESTORE_TABS, "on"));
+    }
+
     /**
-     * 启动时问一次要不要恢复上次的标签页。
+     * 启动时把上次的标签页摆回来。
      *
-     * <p>要等窗口真的出来才能问——弹窗需要一个 owner，构造函数跑的时候还没有。
+     * <p>原来是弹一个确认框问要不要恢复。每次启动都要被它挡一下，
+     * 而几乎所有人每次都点「恢复」——问一个答案永远一样的问题，只是在拦路。
+     * 现在直接恢复，状态栏说一句；不想要的人在「工具」菜单里关掉。
+     *
+     * <p>恢复本身不会卡住界面：页先摆出来，各自写着「正在连接…」，
+     * 连接在后台同时连（见 {@link #restoreSession}）。
+     *
+     * <p>要等窗口真的出来才能做——连不上时页里要弹重试，那需要一个 owner。
      */
-    public void offerSessionRestore() {
+    public void restoreLastSession() {
         List<TabStore.SessionTab> last;
         try {
             last = context.tabStore().lastSession();
         } catch (RuntimeException e) {
-            return;
+            last = List.of();
         }
-        if (last.isEmpty()) {
-            startSessionAutoSave();
-            return;
-        }
-        long unsaved = last.stream().filter(TabStore.SessionTab::unsaved).count();
-        StringBuilder message = new StringBuilder("上次退出时还开着 ")
-                .append(last.size()).append(" 个标签页");
-        if (unsaved > 0) {
-            message.append("，其中 ").append(unsaved).append(" 个的内容没有保存过");
-        }
-        message.append("。").append(NL).append(NL)
-                .append("恢复会重新连上这些库：查询页连 SQL 一起回来，表页重新打开那张表。")
-                .append(NL)
-                .append("表里没写回的单元格改动恢复不了——它绑在当时取到的那一页数据上。");
-
-        if (UiUtils.confirm(window(), "恢复上次的标签页", message.toString())) {
+        if (!last.isEmpty() && restoreTabsEnabled()) {
             restoreSession(last);
-        } else {
-            // 说了不恢复就别再问第二次，否则每次启动都要挡一下
-            context.tabStore().clearSession();
+            setStatus("已恢复上次的 " + last.size() + " 个标签页");
         }
         startSessionAutoSave();
     }

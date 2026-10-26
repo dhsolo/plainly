@@ -1701,3 +1701,35 @@
     -fx-font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
     -fx-font-size: 12px;
 }
+
+/*
+ * 启动画面（ui/Splash）。
+ * 颜色全走调色板，深色主题下自动跟着换——配置库打开之前它就按上次的主题挂好了类。
+ */
+.splash-card {
+    -fx-background-color: -sx-panel;
+    -fx-background-radius: 10;
+    -fx-border-color: -sx-border-light;
+    -fx-border-radius: 10;
+    -fx-padding: 28 32 24 32;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.22), 22, 0.12, 0, 6);
+}
+
+.splash-name {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sx-text;
+}
+
+.splash-status {
+    -fx-font-size: 12px;
+    -fx-text-fill: -sx-text-3;
+}
+
+.splash-track {
+    -fx-fill: -sx-border-light;
+}
+
+.splash-segment {
+    -fx-fill: -sx-accent;
+}

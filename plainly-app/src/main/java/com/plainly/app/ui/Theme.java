@@ -52,12 +52,42 @@ public final class Theme {
     /** 从本机偏好里读出上次选的主题并应用。在建任何界面之前调一次。 */
     public static void restore(UiState state) {
         apply("dark".equals(state.get(UiState.THEME, "light")));
+        rememberForSplash(dark);
     }
 
     /** 切换主题并记下来。 */
     public static void toggle(UiState state) {
         apply(!dark);
         state.put(UiState.THEME, dark ? "dark" : "light");
+        rememberForSplash(dark);
+    }
+
+    /*
+     * 启动画面要在本机配置库打开<b>之前</b>就出来——打开配置库正是它要遮住的那段等待。
+     * 可主题偏好存在配置库里，那时还读不到。用深色的人每次启动先被一张白卡片闪一下，
+     * 比没有启动画面还难受。
+     *
+     * 所以另在系统偏好里（Windows 上是注册表）抄一份，只给启动画面用。
+     * 读写失败都不要紧：最坏是启动画面用了亮色。
+     */
+    private static final String SPLASH_KEY = "splashDark";
+
+    private static void rememberForSplash(boolean useDark) {
+        try {
+            java.util.prefs.Preferences.userNodeForPackage(Theme.class).putBoolean(SPLASH_KEY, useDark);
+        } catch (RuntimeException ignored) {
+            // 写不进去就算了，下次启动画面用亮色
+        }
+    }
+
+    /** 上次用的是不是深色，给配置库还没打开时的启动画面用。 */
+    public static boolean lastKnownDark() {
+        try {
+            return java.util.prefs.Preferences.userNodeForPackage(Theme.class)
+                    .getBoolean(SPLASH_KEY, false);
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     /** 应用到当前所有窗口，以及之后新开的窗口。 */
