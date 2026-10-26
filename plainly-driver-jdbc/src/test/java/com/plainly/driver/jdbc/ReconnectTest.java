@@ -164,6 +164,87 @@ class ReconnectTest {
         assertNotNull(conn.describeTable("PUBLIC", "T_D"), "重连之后应当能正常用");
     }
 
+    // ------------------------------------------------------------------ 空闲超时
+
+    /**
+     * 换上一条「被服务端悄悄掐掉」的连接。
+     *
+     * <p>和 {@link #killUnderlying} 不一样：那边是本地已经知道关了（{@code isClosed()} 为真），
+     * 驱动发送前就会拦下来，重试本来就是安全的。真实的空闲超时是这个样子——
+     * 本地以为还开着，探活不通，语句写进 socket 之后才在读回包时报
+     * {@code Communications link failure}。这时分不清语句跑没跑，原来只能报错。
+     */
+    private static void silentlyDropped(JdbcConnection conn) throws Exception {
+        Connection real = underlying(conn);
+        Connection dropped = (Connection) java.lang.reflect.Proxy.newProxyInstance(
+                Connection.class.getClassLoader(), new Class<?>[]{Connection.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "isClosed" -> false;
+                    case "isValid" -> false;
+                    case "close" -> {
+                        real.close();
+                        yield null;
+                    }
+                    default -> throw new java.sql.SQLException(
+                            "Communications link failure", "08S01");
+                });
+        Field field = JdbcConnection.class.getDeclaredField("conn");
+        field.setAccessible(true);
+        field.set(conn, dropped);
+    }
+
+    /** 假装已经空闲了很久。 */
+    private static void idleFor(JdbcConnection conn, long minutes) throws Exception {
+        Field field = JdbcConnection.class.getDeclaredField("lastActivity");
+        field.setAccessible(true);
+        field.setLong(conn, System.nanoTime()
+                - java.util.concurrent.TimeUnit.MINUTES.toNanos(minutes));
+    }
+
+    @Test
+    @DisplayName("放久了被服务端掐掉：执行前先探活重连，查询和写语句都不报错")
+    void idleTimeoutIsHealedBeforeTheStatementIsSent() throws Exception {
+        JdbcConnection conn = open("plainly_reconnect_e");
+        conn.execute("CREATE TABLE T_E (id BIGINT PRIMARY KEY)", 0);
+
+        silentlyDropped(conn);
+        idleFor(conn, 10);
+        conn.execute("INSERT INTO T_E VALUES (1)", 0);
+
+        silentlyDropped(conn);
+        idleFor(conn, 10);
+        assertEquals("1", conn.scalar("SELECT COUNT(*) FROM T_E"),
+                "写语句只该执行一次，而且重连后读得到");
+    }
+
+    @Test
+    @DisplayName("重连前后各通知一次，界面靠它显示「正在重新连接」")
+    void reconnectIsAnnounced() throws Exception {
+        JdbcConnection conn = open("plainly_reconnect_g");
+        java.util.List<Boolean> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+        conn.setReconnectListener(events::add);
+
+        conn.scalar("SELECT 1");
+        assertTrue(events.isEmpty(), "连接好好的时候不该有任何通知：" + events);
+
+        silentlyDropped(conn);
+        idleFor(conn, 10);
+        conn.scalar("SELECT 1");
+        assertEquals(java.util.List.of(true, false), events, "先「开始」后「结束」，各一次");
+    }
+
+    @Test
+    @DisplayName("刚用过的连接不额外探活：断了照旧按「是否已生效不确定」处理")
+    void recentlyUsedConnectionIsNotPinged() throws Exception {
+        JdbcConnection conn = open("plainly_reconnect_f");
+        conn.execute("CREATE TABLE T_F (id BIGINT PRIMARY KEY)", 0);
+
+        silentlyDropped(conn);
+        DbException e = assertThrows(DbException.class,
+                () -> conn.execute("INSERT INTO T_F VALUES (1)", 0));
+        assertTrue(e.getMessage().contains("无法确定"), e.getMessage());
+    }
+
     /** 只是包一层 AutoCloseable，让 @AfterEach 不必关心类型。 */
     private record DbConnectionUnderTest(JdbcConnection conn) implements AutoCloseable {
         @Override

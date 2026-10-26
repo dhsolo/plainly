@@ -85,6 +85,35 @@ public class SqlEditorPane extends BorderPane {
     private final DataGridPane grid = new DataGridPane();
     private final ComboBox<Integer> rowLimit = new ComboBox<>();
     private final Label resultLabel = UiUtils.label("", "hint");
+
+    /** 自动重连期间在「结果」旁边转的那个圈。 */
+    private final javafx.scene.control.ProgressIndicator reconnectSpinner =
+            new javafx.scene.control.ProgressIndicator();
+
+    /**
+     * 连接放久了被服务端掐掉，点执行时驱动会先重连（见 JdbcConnection.reviveIfIdle）。
+     * 慢的时候要好几秒，只写「执行中」的话，用户会以为查询本身卡住了。
+     *
+     * <p>只有正在执行的这一页才显示：同一条连接上的别的页也会收到通知，
+     * 但它们手上没有在跑的东西，转个圈只会让人困惑。
+     */
+    private final java.util.function.Consumer<Boolean> onReconnect = this::reconnecting;
+
+    private void reconnecting(boolean started) {
+        if (!running) {
+            return;
+        }
+        showReconnecting(started);
+        resultLabel.setText(started ? "连接已断开，正在重新连接…" : "已重新连接，执行中…");
+        if (started) {
+            statusSink.accept("连接已断开，正在重新连接 " + session.config().name() + " …");
+        }
+    }
+
+    private void showReconnecting(boolean on) {
+        reconnectSpinner.setVisible(on);
+        reconnectSpinner.setManaged(on);
+    }
     private final Label messageLabel = UiUtils.label("", "hint");
     /** 自动换行的开关记在这里，下次打开还是上次那个选择。 */
     private static final String WRAP_KEY = "sql.wrapText";
@@ -1038,8 +1067,21 @@ public class SqlEditorPane extends BorderPane {
         });
         grid.setOnDirtyChanged(this::refreshEditState);
 
+        reconnectSpinner.setPrefSize(14, 14);
+        reconnectSpinner.setMaxSize(14, 14);
+        reconnectSpinner.setVisible(false);
+        reconnectSpinner.setManaged(false);
+        // 挂在「有没有进场景」上，和 TransactionBar 一样：关掉的标签页不能还挂在会话上
+        sceneProperty().addListener((obs, old, scene) -> {
+            if (scene == null) {
+                session.removeReconnectListener(onReconnect);
+            } else {
+                session.addReconnectListener(onReconnect);
+            }
+        });
+
         HBox head = UiUtils.row(12, UiUtils.label("结果", "section-label"),
-                resultLabel, UiUtils.hSpacer(),
+                reconnectSpinner, resultLabel, UiUtils.hSpacer(),
                 addRowButton, deleteRowButton, saveEditsButton, discardEditsButton,
                 UiUtils.vSeparator(), exportButton);
         head.getStyleClass().add("grid-toolbar");
@@ -1142,6 +1184,8 @@ public class SqlEditorPane extends BorderPane {
         })
                 .whenComplete((outcome, error) -> Platform.runLater(() -> {
                     running = false;
+                    // 重连失败时「结束」那一声也会到，这里再收一次是兜底：圈不能一直转下去
+                    showReconnecting(false);
                     runButton.setDisable(false);
                     stopButton.setDisable(true);
                     // 刚才那条可能是写语句：手动事务下「有未提交的改动」要亮起来。

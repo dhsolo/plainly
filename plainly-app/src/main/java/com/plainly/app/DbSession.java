@@ -37,6 +37,7 @@ public class DbSession {
     public DbSession(ConnectionConfig config, DbConnection connection) {
         this.config = config;
         this.connection = connection;
+        connection.setReconnectListener(this::fireReconnecting);
     }
 
     public ConnectionConfig config() {
@@ -259,6 +260,30 @@ public class DbSession {
     /** 事务状态可能变了，通知所有在看的界面。只能在界面线程上调。 */
     public void fireTransactionChanged() {
         transactionListeners.forEach(Runnable::run);
+    }
+
+    // ------------------------------------------------------------------ 自动重连
+
+    /*
+     * 连接放久了被服务端掐掉，下一次用它时驱动会自己重连（见 JdbcConnection.reviveIfIdle）。
+     * 重连要一两次网络往返，慢的时候好几秒——这期间界面得说清楚在干什么。
+     *
+     * 驱动那边一条连接只挂一个回调，这里转发给所有在看的标签页，并切回界面线程。
+     */
+    private final List<java.util.function.Consumer<Boolean>> reconnectListeners =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    public void addReconnectListener(java.util.function.Consumer<Boolean> listener) {
+        reconnectListeners.add(listener);
+    }
+
+    public void removeReconnectListener(java.util.function.Consumer<Boolean> listener) {
+        reconnectListeners.remove(listener);
+    }
+
+    private void fireReconnecting(boolean started) {
+        javafx.application.Platform.runLater(() ->
+                reconnectListeners.forEach(l -> l.accept(started)));
     }
 
     /** 当前是不是手动事务模式。 */

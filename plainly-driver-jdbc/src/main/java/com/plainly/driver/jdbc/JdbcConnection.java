@@ -1645,7 +1645,29 @@ public class JdbcConnection implements DbConnection {
      * <p><b>搬不过来的是未提交的事务</b>：它在服务端断开的那一刻就被回滚了，
      * 这里只能把标记清掉，由调用方去告诉用户。
      */
+    private volatile java.util.function.Consumer<Boolean> reconnectListener = started -> { };
+
+    @Override
+    public void setReconnectListener(java.util.function.Consumer<Boolean> listener) {
+        this.reconnectListener = listener == null ? started -> { } : listener;
+    }
+
+    /**
+     * 重连，并告诉界面「正在重连」。
+     *
+     * <p>远端慢的时候重连要好几秒，这几秒里界面只写着「执行中」，
+     * 用户会以为是查询本身卡住了，然后去点「停止」。
+     */
     private synchronized void reopen() {
+        reconnectListener.accept(true);
+        try {
+            reopenQuietly();
+        } finally {
+            reconnectListener.accept(false);
+        }
+    }
+
+    private void reopenQuietly() {
         Connection dead = conn;
         try {
             if (dead != null && !dead.isClosed()) {
@@ -1664,6 +1686,8 @@ public class JdbcConnection implements DbConnection {
         }
         conn = fresh;
         pendingTx = false;
+        // 刚连上的，下面切库那一下不必再探一次活
+        lastActivity = System.nanoTime();
         if (currentSchema != null && !currentSchema.isBlank()) {
             try {
                 useSchema(currentSchema);
@@ -1681,6 +1705,7 @@ public class JdbcConnection implements DbConnection {
      * {@link #neverReachedServer}。
      */
     private <T> T reading(java.util.function.Supplier<T> action) {
+        reviveIfIdle();
         try {
             return action.get();
         } catch (RuntimeException first) {
@@ -1693,6 +1718,8 @@ public class JdbcConnection implements DbConnection {
                 throw transactionLost(first);
             }
             return action.get();
+        } finally {
+            lastActivity = System.nanoTime();
         }
     }
 
@@ -1701,6 +1728,7 @@ public class JdbcConnection implements DbConnection {
      * 但<b>只有在确定语句没发出去</b>时才重跑。
      */
     private <T> T guarded(java.util.function.Supplier<T> action) {
+        reviveIfIdle();
         try {
             return action.get();
         } catch (RuntimeException first) {
@@ -1720,6 +1748,49 @@ public class JdbcConnection implements DbConnection {
                         first);
             }
             return action.get();
+        } finally {
+            lastActivity = System.nanoTime();
+        }
+    }
+
+    /**
+     * 上一次确认连接还活着的时刻（{@code System.nanoTime()}）。
+     *
+     * <p>每次操作结束、每次探活通过都会刷新它。
+     */
+    private volatile long lastActivity = System.nanoTime();
+
+    /** 空闲多久之后，下一次操作前先探一次活。 */
+    private static final long IDLE_CHECK_NANOS = java.util.concurrent.TimeUnit.SECONDS.toNanos(30);
+
+    /**
+     * 空闲久了，先探活，死了就先重连——赶在语句发出去<b>之前</b>。
+     *
+     * <h2>为什么不能等出错了再说</h2>
+     * 查询窗口放一阵子，服务端的空闲超时（MySQL 的 {@code wait_timeout}）会把会话掐掉，
+     * 而本地并不知情。这时点「执行」，语句照样写进了 socket，要等读回包时才发现链路没了——
+     * 这正是 {@link #neverReachedServer} 分辨不了的那一种：它只能按「可能已经执行过」处理，
+     * 不敢重跑，于是用户每次放久了回来，第一下查询必然挨一个报错。
+     *
+     * <p>先 ping 一下就没有这种两难：ping 不通说明语句还没发，重连之后再发是干净的。
+     * 只在空闲超过 {@link #IDLE_CHECK_NANOS} 时做，连着干活的时候不多一次往返；
+     * 连接是好的话这一下通常只有几毫秒。
+     *
+     * <p>未提交的事务救不回来：服务端断开时已经回滚了，这件事必须告诉用户，
+     * 所以那种情况照样报错（见 {@link #transactionLost}）。
+     */
+    private void reviveIfIdle() {
+        if (System.nanoTime() - lastActivity < IDLE_CHECK_NANOS) {
+            return;
+        }
+        if (isAlive()) {
+            lastActivity = System.nanoTime();
+            return;
+        }
+        boolean hadTransaction = pendingTx;
+        reopen();
+        if (hadTransaction) {
+            throw transactionLost(new DbException("空闲期间连接被服务端断开"));
         }
     }
 

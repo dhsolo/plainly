@@ -303,6 +303,17 @@ public interface DbConnection extends AutoCloseable {
         return !isClosed();
     }
 
+    /**
+     * 自动重连开始、结束时通知一声：{@code true} 是开始，{@code false} 是结束（不论成败）。
+     *
+     * <p>重连发生在后台线程上，回调也在那个线程上跑，界面要自己切回界面线程。
+     * 一条连接只挂一个——由持有它的会话统一转发给各个标签页。
+     *
+     * <p>默认实现什么都不做：不会自动重连的驱动没有可通知的事。
+     */
+    default void setReconnectListener(java.util.function.Consumer<Boolean> listener) {
+    }
+
     @Override
     void close();
 
